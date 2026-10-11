@@ -186,7 +186,23 @@ dialog::backdrop {
     display: contents;
   }
 
+  /*
+   * The board has a height of its own and stays in view. Without this it
+   * spans the rows beside it, so anything that makes the side column taller
+   * (the solver's verdict, the open text description) would also enlarge the
+   * board and push its foot off the screen.
+   */
   .game-board {
-    min-height: 520px;
+    position: sticky;
+    top: 1.25rem;
+    align-self: start;
+    height: clamp(520px, calc(100dvh - var(--header-h) - var(--footer-h) - 2.5rem), 860px);
+  }
+}
+
+/* On a short phone the floating how-to drops its icons, so it covers less of the board. */
+@media (max-height: 720px) and (max-width: 1023px) {
+  .howto-float svg {
+    display: none;
   }
 }

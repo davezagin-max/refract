@@ -92,7 +92,7 @@ export function Help() {
           <dt className="font-medium text-fg">Keyboard</dt>
           <dd className="space-y-1.5">
             <p>
-              <span className={kbd}>←↑↓→</span> move the cursor · <span className={kbd}>Enter</span>{" "}
+              <span className={kbd}>Arrows</span> move the cursor · <span className={kbd}>Enter</span>{" "}
               pick up or place · <span className={kbd}>1</span>–<span className={kbd}>9</span> choose a
               tray piece
             </p>

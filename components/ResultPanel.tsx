@@ -72,19 +72,22 @@ export function ResultPanel({ result, shareText, children }: Props) {
       className="rise rounded-xl border border-success/40 bg-surface p-4 shadow-[0_0_40px_-12px_rgba(77,255,166,0.45)]"
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-success">
             <CheckIcon />
             Solved
           </h2>
+          {/* Non-breaking spaces: the line may wrap between the three facts, never inside one. */}
           <p className="mt-0.5 text-sm text-muted">
-            {result.moves === 1 ? "1 move" : `${result.moves} moves`} · {formatTime(result.timeMs)} ·{" "}
-            {hints}
+            {result.moves === 1 ? "1\u00a0move" : `${result.moves}\u00a0moves`} · {formatTime(result.timeMs)} ·{" "}
+            {hints.replace(" ", "\u00a0")}
           </p>
         </div>
+        {/* One row of the grid per line, exactly as it is copied: never re-wrapped by the box. */}
         <p
+          role="img"
           aria-label="One square per move: how many targets were lit after it"
-          className="max-w-[9.5rem] whitespace-pre-wrap text-right text-base leading-tight"
+          className="shrink-0 whitespace-pre text-right text-sm leading-tight"
         >
           {beatGrid(result.timeline)}
         </p>

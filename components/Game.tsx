@@ -666,7 +666,7 @@ export function Game({
           {howTo && (
             // On a phone the steps float over the foot of the board, so dismissing
             // them on the first touch moves nothing under the player's finger.
-            <div className="pointer-events-none absolute inset-x-3 bottom-1 lg:hidden">
+            <div className="howto-float pointer-events-none absolute inset-x-3 bottom-1 lg:hidden">
               <HowTo />
             </div>
           )}
