@@ -128,15 +128,17 @@ type Check =
   | { key: string; state: "done"; result: SolveResult; ms: number }
   | { key: string; state: "failed" };
 
-function startingDraft(): { draft: Draft; play: boolean } {
+function startingDraft(): { draft: Draft; play: boolean; linked: boolean } {
   // A level link wins over the saved draft: "#play=…" opens it ready to play.
   const hash = window.location.hash.slice(1);
   const [name, data] = hash.split("=");
   if ((name === "play" || name === "edit") && data) {
-    const linked = decodeDraft(data);
-    if (linked) return { draft: linked, play: name === "play" && draftProblems(linked).length === 0 };
+    const draft = decodeDraft(data);
+    if (draft) {
+      return { draft, play: name === "play" && draftProblems(draft).length === 0, linked: true };
+    }
   }
-  return { draft: cleanDraft(load(KEYS.editor)) ?? sampleDraft(), play: false };
+  return { draft: cleanDraft(load(KEYS.editor)) ?? sampleDraft(), play: false, linked: false };
 }
 
 function Workbench() {
@@ -154,6 +156,10 @@ function Workbench() {
   const [hover, setHover] = useState(-1);
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [linkText, setLinkText] = useState("");
+  // A level opened from a link is someone else's: it only replaces the saved
+  // draft once the visitor edits it.
+  const [linked, setLinked] = useState(start.linked);
   const boardApi = useRef<BoardApi | null>(null);
   const pressed = useRef<{ id: number; cell: number } | null>(null);
 
@@ -172,8 +178,25 @@ function Workbench() {
       : null;
 
   useEffect(() => {
-    save(KEYS.editor, draft);
-  }, [draft]);
+    if (!linked) save(KEYS.editor, draft);
+  }, [draft, linked]);
+
+  useEffect(() => {
+    // Another level link pasted into the address bar only changes the hash: load it.
+    const reload = () => window.location.reload();
+    window.addEventListener("hashchange", reload);
+    return () => window.removeEventListener("hashchange", reload);
+  }, []);
+
+  const adopt = () => {
+    if (!linked) return;
+    setLinked(false);
+    try {
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch {
+      // The address bar is a convenience only.
+    }
+  };
 
   useEffect(() => {
     if (!copied) return;
@@ -183,6 +206,7 @@ function Workbench() {
 
   const commit = (next: Draft, said: string) => {
     if (next === draft) return false;
+    adopt();
     setPast((stack) => [...stack.slice(-99), draft]);
     setDraft(next);
     setShowOther(false);
@@ -256,10 +280,11 @@ function Workbench() {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      setLinkText("");
       setMessage("Link copied. It opens this level ready to play.");
     } catch {
-      window.location.hash = `play=${encodeDraft(draft)}`;
-      setMessage("Copying was blocked. The link is now in the address bar.");
+      setLinkText(url);
+      setMessage("Copying was blocked. Select the link below and copy it yourself.");
     }
   };
 
@@ -645,6 +670,17 @@ function Workbench() {
             <ShareIcon size={18} />
           </SmallButton>
         </div>
+        {linkText && (
+          <label className="block text-xs text-muted">
+            Copying was blocked by the browser. Select the link and copy it yourself:
+            <input
+              readOnly
+              value={linkText}
+              onFocus={(event) => event.currentTarget.select()}
+              className="mt-1 block w-full rounded-lg border border-border bg-bg p-2 font-mono text-xs text-fg"
+            />
+          </label>
+        )}
       </div>
     </div>
   );
