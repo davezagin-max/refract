@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { makeGrid } from "@/lib/engine/hex";
 import { BLUE, GREEN, ORIENTATIONS, RED, WHITE, type PieceKind } from "@/lib/engine/optics";
 import { placedKey, targetsLit, type Placed, type Puzzle } from "@/lib/engine/puzzle";
-import { solve, solveFrom } from "@/lib/engine/solver";
+import { solve } from "@/lib/engine/solver";
 import { trace } from "@/lib/engine/trace";
 import { at, bruteForce, lcg, puzzle } from "./helpers";
 
@@ -109,22 +109,6 @@ describe("solver", () => {
     const result = solve(p);
     expect(result.solutions).toEqual([[]]);
     expect(result.nodes).toBe(1);
-  });
-
-  it("continues from pieces the player has already placed", () => {
-    const p = puzzle(R, {
-      emitters: [{ cell: c(-2, 0), dir: 0, color: WHITE }],
-      targets: [{ cell: c(2, -2), color: WHITE }],
-      walls: [c(2, -1)],
-      tray: ["mirror", "mirror"],
-    });
-    // A mirror at (-1,0) turned up-right sends the beam along (0,-1), (1,-2).
-    const kept: Placed[] = [{ cell: c(-1, 0), kind: "mirror", orient: 1 }];
-    const result = solveFrom(p, kept, ["mirror"], { maxSolutions: 10 });
-    expect(result.status).toBe("solved");
-    for (const rest of result.solutions) {
-      expect(targetsLit(p, trace(p, [...kept, ...rest]).light)).toBe(true);
-    }
   });
 
   it("agrees with brute force on 250 random small puzzles", () => {

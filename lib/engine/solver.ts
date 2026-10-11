@@ -742,16 +742,3 @@ export function solve(puzzle: Puzzle, options: SolveOptions = {}): SolveResult {
     pruned,
   };
 }
-
-/**
- * Solve with some tray pieces already fixed where the player put them.
- * Used for hints that respect the player's progress.
- */
-export function solveFrom(
-  puzzle: Puzzle,
-  kept: readonly Placed[],
-  trayLeft: Puzzle["tray"],
-  options: SolveOptions = {},
-): SolveResult {
-  return solve({ ...puzzle, fixed: [...puzzle.fixed, ...kept], tray: [...trayLeft] }, options);
-}
