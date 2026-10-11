@@ -156,6 +156,7 @@ function Workbench() {
   const [hover, setHover] = useState(-1);
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [round, setRound] = useState(0);
   const [linkText, setLinkText] = useState("");
   // A level opened from a link is someone else's: it only replaces the saved
   // draft once the visitor edits it.
@@ -169,6 +170,7 @@ function Workbench() {
   const light = useMemo(() => draftLight(draft), [draft]);
   const problems = useMemo(() => draftProblems(draft), [draft]);
   const layoutSolves = draft.targets.length > 0 && targetsLit(puzzle, light);
+  const playId = useMemo(() => `custom:${hashString(puzzleKey).toString(36)}`, [puzzleKey]);
   // A result only counts for the board it was computed for.
   const current = check && check.key === puzzleKey ? check : null;
   const report = current?.state === "done" ? verdict(current.result) : null;
@@ -259,6 +261,12 @@ function Workbench() {
 
   const replaceWith = (next: Draft, said: string) => {
     if (commit(next, said)) setCursor(cellAt(makeGrid(next.radius), 0, 0));
+  };
+
+  /** Play-testing always starts from an empty board, however the last attempt ended. */
+  const startPlay = () => {
+    setRound((n) => n + 1);
+    setMode("play");
   };
 
   const verify = async () => {
@@ -371,8 +379,9 @@ function Workbench() {
         : null;
     return (
       <Game
-        key={puzzleKey}
-        id={`custom:${hashString(puzzleKey).toString(36)}`}
+        key={`${playId}:${round}`}
+        id={playId}
+        persist={false}
         puzzle={puzzle}
         solution={hints}
         heading={
@@ -410,13 +419,22 @@ function Workbench() {
               {done.moves === 1 ? "1 move" : `${done.moves} moves`} · {formatTime(done.timeMs)}
               {done.hints > 0 ? ` · ${done.hints === 1 ? "1 hint" : `${done.hints} hints`}` : ""}
             </p>
-            <button
-              type="button"
-              onClick={() => setMode("edit")}
-              className="mt-3 min-h-12 w-full rounded-xl bg-accent px-4 text-sm font-semibold text-accent-fg hover:opacity-90"
-            >
-              Back to the editor
-            </button>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={startPlay}
+                className="min-h-12 rounded-xl bg-accent px-3 text-sm font-semibold text-accent-fg hover:opacity-90"
+              >
+                Play again
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("edit")}
+                className="min-h-12 rounded-xl border border-border bg-surface px-3 text-sm font-semibold hover:border-accent/60 hover:bg-raised"
+              >
+                Back to the editor
+              </button>
+            </div>
           </section>
         )}
       />
@@ -548,7 +566,7 @@ function Workbench() {
             </button>
             <button
               type="button"
-              onClick={() => setMode("play")}
+              onClick={startPlay}
               disabled={problems.length > 0}
               className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold hover:border-accent/60 hover:bg-raised disabled:cursor-not-allowed disabled:opacity-40"
             >

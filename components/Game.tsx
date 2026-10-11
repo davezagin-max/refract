@@ -58,6 +58,8 @@ interface Props {
   onSolved?: (result: GameResult) => void;
   showHowTo?: boolean;
   onInteract?: () => void;
+  /** Save progress to storage and restore it on load. Off for play-testing in the editor. */
+  persist?: boolean;
 }
 
 /** How far above the finger a touch-dragged piece floats, so it stays visible. */
@@ -127,11 +129,16 @@ export function Game({
   onSolved,
   showHowTo = false,
   onInteract,
+  persist = true,
 }: Props) {
   const grid = useMemo(() => gridOf(puzzle), [puzzle]);
   // Read the saved game once, before the first render, so nothing can overwrite it with a blank one.
   const [initial] = useState(
-    () => restore(puzzle, load(KEYS.game(id))) ?? { state: newGame(puzzle), elapsedMs: 0 },
+    () =>
+      (persist ? restore(puzzle, load(KEYS.game(id))) : null) ?? {
+        state: newGame(puzzle),
+        elapsedMs: 0,
+      },
   );
   const [state, setState] = useState<GameState>(initial.state);
   const stateRef = useRef(state);
@@ -161,9 +168,10 @@ export function Game({
 
   // Persist after every move, and once more when the tab is hidden so the clock is saved too.
   useEffect(() => {
-    if (state.moves > 0) save(KEYS.game(id), serialize(state, read()));
-  }, [id, state, read]);
+    if (persist && state.moves > 0) save(KEYS.game(id), serialize(state, read()));
+  }, [id, persist, state, read]);
   useEffect(() => {
+    if (!persist) return;
     const flush = () => {
       const current = stateRef.current;
       if (current.moves > 0) save(KEYS.game(id), serialize(current, read()));
@@ -178,7 +186,7 @@ export function Game({
       window.removeEventListener("pagehide", flush);
       document.removeEventListener("visibilitychange", onHide);
     };
-  }, [id, read]);
+  }, [id, persist, read]);
 
   // If the canvas never reports the end of the win sequence, show the result anyway.
   useEffect(() => {
