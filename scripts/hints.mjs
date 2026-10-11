@@ -3,7 +3,7 @@
  * Rebuilds the table in lib/engine/hints.ts: for each day from the epoch, the
  * index of the first sub-seed the generator accepts.
  *
- *   pnpm hints          (default: 400 days)
+ *   pnpm hints          (default: 1830 days, five years)
  *   pnpm hints 730
  *
  * Runs the TypeScript engine directly: Node strips the types, and the small
@@ -25,18 +25,23 @@ registerHooks({
   },
 });
 
-const { GENERATOR_VERSION, generateDaily } = await import("../lib/engine/generator.ts");
+const { GENERATOR_VERSION, TIERS, generateDaily } = await import("../lib/engine/generator.ts");
 const { EPOCH, addDays } = await import("../lib/engine/daily.ts");
 const { encodeHints } = await import("../lib/engine/hints.ts");
 
-const days = Number(process.argv[2] ?? 400);
+const days = Number(process.argv[2] ?? 1830);
 if (!Number.isInteger(days) || days < 1) throw new Error("Usage: pnpm hints [days]");
 
 const attempts = [];
+const outOfBand = [];
 const started = Date.now();
 for (let i = 0; i < days; i++) {
   // No hint here on purpose: the table must come from the full search.
-  attempts.push(generateDaily(addDays(EPOCH, i)).attempts - 1);
+  const date = addDays(EPOCH, i);
+  const daily = generateDaily(date);
+  attempts.push(daily.attempts - 1);
+  const [low, high] = TIERS[daily.tier].band;
+  if (daily.nodes < low || daily.nodes > high) outOfBand.push(date);
 }
 const table = encodeHints(attempts);
 
@@ -48,3 +53,9 @@ const next = source
 if (next === source && !source.includes(table)) throw new Error("Could not find the table in hints.ts");
 writeFileSync(file, next);
 console.log(`${days} days from ${EPOCH} in ${((Date.now() - started) / 1000).toFixed(1)}s`);
+console.log(`first try: ${attempts.filter((a) => a === 0).length}, most attempts: ${Math.max(...attempts) + 1}`);
+console.log(
+  outOfBand.length === 0
+    ? "every day landed in its difficulty band"
+    : `outside the band (closest attempt used, no shortcut possible): ${outOfBand.join(", ")}`,
+);
