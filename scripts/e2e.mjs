@@ -551,9 +551,9 @@ try {
     await slow.page.waitForSelector("text=exactly one solution", { timeout: 1500 });
     ok(true, "a new search does not wait behind an abandoned one");
     // Left alone, the same level runs out of budget and says so.
-    await slow.page.goto(`${base}/editor#edit=${HEAVY_LEVEL}`, { waitUntil: "networkidle" });
-    await slow.page.reload({ waitUntil: "networkidle" });
-    await slow.page.waitForSelector("canvas");
+    // (Only the hash changes here, and the editor reloads itself to pick the new level up.)
+    await slow.page.goto(`${base}/editor#edit=${HEAVY_LEVEL}`);
+    await slow.page.waitForSelector("dd:text-is('8/8')");
     await slow.page.getByRole("button", { name: "Verify solvable" }).click();
     await slow.page.waitForSelector("text=Too big to verify", { timeout: 30_000 });
     ok(slow.problems.length === 0, `no console errors when stopping a search (${slow.problems.join(" | ")})`);

@@ -97,7 +97,14 @@ const isPiece = (tool: Tool): tool is PieceKind => PIECE_KINDS.includes(tool as 
 
 function ToolIcon({ tool }: { tool: Tool }) {
   if (isPiece(tool)) return <PieceIcon kind={tool} orient={tool === "prism" ? 0 : 1} size={26} />;
-  if (tool === "erase") return <TrashIcon size={22} />;
+  if (tool === "erase") {
+    // Boxed to the other icons' height so the seven labels share a baseline.
+    return (
+      <span className="grid h-[26px] place-items-center">
+        <TrashIcon size={22} />
+      </span>
+    );
+  }
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       {tool === "emitter" && (
@@ -121,6 +128,24 @@ function ToolIcon({ tool }: { tool: Tool }) {
       )}
     </svg>
   );
+}
+
+/**
+ * Arrow keys move between the options of a radio group and select as they go,
+ * the way a native radio group behaves. Each group has one tab stop (the
+ * checked option), so Tab passes through the editor's controls quickly.
+ */
+function onRadioKeys(event: KeyboardEvent<HTMLElement>) {
+  const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
+  const back = event.key === "ArrowLeft" || event.key === "ArrowUp";
+  if (!forward && !back) return;
+  const radios = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("[role='radio']")];
+  const index = radios.indexOf(document.activeElement as HTMLButtonElement);
+  if (index < 0) return;
+  event.preventDefault();
+  const next = radios[(index + (forward ? 1 : -1) + radios.length) % radios.length];
+  next.focus();
+  next.click();
 }
 
 type Check =
@@ -507,6 +532,7 @@ function Workbench() {
           <div
             role="radiogroup"
             aria-label="Tool"
+            onKeyDown={onRadioKeys}
             className="grid grid-cols-7 gap-0.5 rounded-xl border border-border bg-surface p-1 sm:gap-1"
           >
             {TOOLS.map((entry) => (
@@ -515,6 +541,7 @@ function Workbench() {
                 type="button"
                 role="radio"
                 aria-checked={tool === entry.tool}
+                tabIndex={tool === entry.tool ? 0 : -1}
                 aria-label={entry.label}
                 title={entry.label}
                 onClick={() => setTool(entry.tool)}
@@ -532,22 +559,47 @@ function Workbench() {
 
           <div className="flex min-h-[54px] items-stretch rounded-xl border border-border bg-surface p-1">
             {isPiece(tool) ? (
-              <div role="radiogroup" aria-label="Who gets this piece" className="flex flex-1 gap-1">
-                <button type="button" role="radio" aria-checked={!fixed} onClick={() => setFixed(false)} className={segment(!fixed)}>
+              <div
+                role="radiogroup"
+                aria-label="Who gets this piece"
+                onKeyDown={onRadioKeys}
+                className="flex flex-1 gap-1"
+              >
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={!fixed}
+                  tabIndex={fixed ? -1 : 0}
+                  onClick={() => setFixed(false)}
+                  className={segment(!fixed)}
+                >
                   Player&apos;s tray
                 </button>
-                <button type="button" role="radio" aria-checked={fixed} onClick={() => setFixed(true)} className={segment(fixed)}>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={fixed}
+                  tabIndex={fixed ? 0 : -1}
+                  onClick={() => setFixed(true)}
+                  className={segment(fixed)}
+                >
                   Fixed on the board
                 </button>
               </div>
             ) : tool === "emitter" || tool === "target" ? (
-              <div role="radiogroup" aria-label="Colour" className="flex flex-1 items-center gap-1">
+              <div
+                role="radiogroup"
+                aria-label="Colour"
+                onKeyDown={onRadioKeys}
+                className="flex flex-1 items-center gap-1"
+              >
                 {COLOR_ORDER.map((c) => (
                   <button
                     key={c}
                     type="button"
                     role="radio"
                     aria-checked={color === c}
+                    tabIndex={color === c ? 0 : -1}
                     aria-label={colorName(c)}
                     title={colorName(c)}
                     onClick={() => setColor(c)}
@@ -684,13 +736,19 @@ function Workbench() {
             </div>
           ))}
         </dl>
-        <div role="radiogroup" aria-label="Board size" className="flex gap-1 rounded-xl border border-border bg-surface p-1">
+        <div
+          role="radiogroup"
+          aria-label="Board size"
+          onKeyDown={onRadioKeys}
+          className="flex gap-1 rounded-xl border border-border bg-surface p-1"
+        >
           {EDITOR_RADII.map((radius) => (
             <button
               key={radius}
               type="button"
               role="radio"
               aria-checked={draft.radius === radius}
+              tabIndex={draft.radius === radius ? 0 : -1}
               onClick={() =>
                 replaceWith(resizeDraft(draft, radius), `Board size ${SIZE_NAMES[radius].toLowerCase()}.`)
               }

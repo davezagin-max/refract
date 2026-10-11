@@ -43,6 +43,17 @@
  * twice (see ORIENTATIONS).
  *
  * A node is one call of the search function, i.e. one board traced.
+ *
+ * What "unique" means. The search stops going deeper as soon as the targets
+ * are lit, and it only reports boards on which every placed piece changes a
+ * beam. So it finds the minimal solutions: sets of pieces that all matter and
+ * contain no smaller solution. `unique` says there is exactly one of those.
+ * If that solution leaves tray pieces over, the spares can sit anywhere
+ * harmless, so the puzzle still has many finished boards; the level editor
+ * reports that case separately. The daily generator only accepts a puzzle
+ * whose one solution uses the whole tray, and then the claim is exact: any
+ * winning board, stripped of idle pieces, contains a minimal solution, which
+ * must be that full-tray one, so it is the same board.
  */
 import {
   ACTION,

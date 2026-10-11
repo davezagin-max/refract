@@ -7,8 +7,8 @@
  * Reads screenshots.json:
  *   {
  *     "shots": [
- *       { "name": "hero", "path": "/", "theme": "light", "viewport": "desktop",
- *         "actions": [{ "click": "text=Run" }, { "waitFor": "#result" }, { "wait": 400 }] }
+ *       { "name": "hero", "path": "/", "viewport": "desktop",
+ *         "actions": [{ "click": "text=Hint" }, { "waitFor": "canvas" }, { "wait": 400 }] }
  *     ],
  *     "gif": { "path": "/", "theme": "dark", "actions": [ ... ] }
  *   }
@@ -66,7 +66,8 @@ async function perform(page, actions = []) {
 
 async function open(browser, spec, extra = {}) {
   const viewport = VIEWPORTS[spec.viewport ?? "desktop"];
-  const theme = spec.theme ?? "light";
+  // The app has one (dark) theme; this only sets what the browser reports as preferred.
+  const theme = spec.theme ?? "dark";
   const context = await browser.newContext({
     viewport,
     deviceScaleFactor: 2,
@@ -74,11 +75,6 @@ async function open(browser, spec, extra = {}) {
     reducedMotion: spec.motion ? "no-preference" : "reduce",
     ...extra,
   });
-  await context.addInitScript((t) => {
-    try {
-      localStorage.setItem("theme", t);
-    } catch {}
-  }, theme);
   const page = await context.newPage();
   await page.goto(base + (spec.path ?? "/"), { waitUntil: "networkidle" });
   return { context, page, viewport };
