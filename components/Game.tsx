@@ -201,6 +201,7 @@ export function Game({
     const before = stateRef.current;
     const after = reduce(before, action);
     if (after === before) return null;
+    onInteract?.(); // any move, including one made with the buttons, retires the how-to
     stateRef.current = after;
     setState(after);
     if (after.solved && !before.solved) {
@@ -344,6 +345,22 @@ export function Game({
     setKeyboard(false);
     const cell = boardApi.current?.cellAt(event.clientX, event.clientY) ?? -1;
     startPress(event, "board", cell >= 0 ? pieceAt(stateRef.current, cell) : -1, cell);
+  };
+
+  /** Mouse only: show that a piece can be grabbed, or that the selected one can go here. */
+  const onBoardPointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (event.pointerType === "mouse" && !press.current?.dragging) {
+      const s = stateRef.current;
+      const cell = boardApi.current?.cellAt(event.clientX, event.clientY) ?? -1;
+      const index = cell >= 0 ? pieceAt(s, cell) : -1;
+      event.currentTarget.style.cursor =
+        index >= 0 && !s.locked[index] && !s.solved
+          ? "grab"
+          : held && index < 0 && canDrop(s, held.index, cell)
+            ? "pointer"
+            : "";
+    }
+    onPointerMove(event);
   };
 
   const onPointerMove = (event: PointerEvent<HTMLElement>) => {
@@ -623,7 +640,7 @@ export function Game({
             aria-label="Puzzle board. Arrow keys move the cursor. Enter picks up or places a piece, R turns it, Backspace returns it to the tray, Z undoes, H gives a hint."
             aria-describedby={descriptionId}
             onPointerDown={onBoardPointerDown}
-            onPointerMove={onPointerMove}
+            onPointerMove={onBoardPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerCancel}
             onContextMenu={(event) => event.preventDefault()}

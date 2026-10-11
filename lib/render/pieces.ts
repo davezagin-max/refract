@@ -91,26 +91,54 @@ function drawPrism(ctx: Ctx, u: number, turn: number, fixed: boolean): void {
   ctx.restore();
 
   // Which way it bends: a curved arrow, counter-clockwise for a left bend.
-  const left = Math.cos(turn) > 0;
-  const r = u * 0.17;
-  const start = left ? Math.PI * 0.15 : Math.PI * 0.85;
-  const end = left ? Math.PI * 0.15 - Math.PI * 1.45 : Math.PI * 0.85 + Math.PI * 1.45;
+  const arrow = prismArrow(Math.cos(turn) > 0);
   ctx.lineCap = "round";
-  ctx.strokeStyle = fixed ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.92)";
-  ctx.lineWidth = u * 0.045;
+  const ink = fixed ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.95)";
+  ctx.strokeStyle = ink;
+  ctx.fillStyle = ink;
+  ctx.lineWidth = u * 0.05;
   ctx.beginPath();
-  ctx.arc(0, 0, r, start, end, left);
+  ctx.arc(0, 0, u * arrow.radius, arrow.start, arrow.end, arrow.left);
   ctx.stroke();
-  const tipX = Math.cos(end) * r;
-  const tipY = Math.sin(end) * r;
-  // Tangent at the end of the arc, in the direction of travel.
+  ctx.beginPath();
+  arrow.head.forEach(([hx, hy], i) => (i === 0 ? ctx.moveTo(hx * u, hy * u) : ctx.lineTo(hx * u, hy * u)));
+  ctx.closePath();
+  ctx.fill();
+}
+
+/**
+ * Geometry of the prism's curved arrow in units of the cell radius, shared
+ * with the SVG icon so the tray and the board draw the same glyph.
+ */
+export function prismArrow(left: boolean): {
+  radius: number;
+  start: number;
+  end: number;
+  left: boolean;
+  head: [number, number][];
+} {
+  const radius = 0.17;
+  const sweep = Math.PI * 1.35;
+  const start = left ? Math.PI * 0.2 : Math.PI * 0.8;
+  const end = left ? start - sweep : start + sweep;
+  // Unit vector along the direction of travel at the end of the arc.
   const tangent = end + (left ? -Math.PI / 2 : Math.PI / 2);
-  const head = u * 0.1;
-  ctx.beginPath();
-  ctx.moveTo(tipX + Math.cos(tangent - 2.5) * head, tipY + Math.sin(tangent - 2.5) * head);
-  ctx.lineTo(tipX, tipY);
-  ctx.lineTo(tipX + Math.cos(tangent + 2.5) * head, tipY + Math.sin(tangent + 2.5) * head);
-  ctx.stroke();
+  const tx = Math.cos(tangent);
+  const ty = Math.sin(tangent);
+  const ex = Math.cos(end) * radius;
+  const ey = Math.sin(end) * radius;
+  const size = 0.11;
+  return {
+    radius,
+    start,
+    end,
+    left,
+    head: [
+      [ex + tx * size, ey + ty * size],
+      [ex - ty * size * 0.75, ey + tx * size * 0.75],
+      [ex + ty * size * 0.75, ey - tx * size * 0.75],
+    ],
+  };
 }
 
 /**

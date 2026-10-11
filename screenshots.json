@@ -1,7 +1,87 @@
 {
   "port": 3260,
   "shots": [
-    { "name": "first-desktop", "path": "/", "theme": "dark", "viewport": "desktop", "actions": [{ "waitFor": "canvas" }, { "wait": 500 }] },
-    { "name": "first-mobile", "path": "/", "theme": "dark", "viewport": "mobile", "actions": [{ "waitFor": "canvas" }, { "wait": 500 }] }
-  ]
+    {
+      "name": "hero",
+      "path": "/?day=2026-10-11",
+      "theme": "dark",
+      "viewport": "desktop",
+      "actions": [
+        { "waitFor": "canvas" },
+        { "click": "button:has-text('Hint')" },
+        { "click": "button:has-text('Hint')" },
+        { "click": "button:has-text('Hint')" },
+        { "click": "button:has-text('Hint')" },
+        { "wait": 400 }
+      ]
+    },
+    {
+      "name": "first-screen",
+      "path": "/?day=2026-10-11",
+      "theme": "dark",
+      "viewport": "desktop",
+      "actions": [{ "waitFor": "canvas" }, { "wait": 400 }]
+    },
+    {
+      "name": "solved",
+      "path": "/?day=2026-10-07",
+      "theme": "dark",
+      "viewport": "desktop",
+      "actions": [
+        { "waitFor": "canvas" },
+        { "click": "button:has-text('Hint')" },
+        { "click": "button:has-text('Hint')" },
+        { "click": "button:has-text('Hint')" },
+        { "waitFor": "section[aria-label='Result']" },
+        { "wait": 300 }
+      ]
+    },
+    {
+      "name": "mobile",
+      "path": "/?day=2026-10-10",
+      "theme": "dark",
+      "viewport": "mobile",
+      "actions": [
+        { "waitFor": "canvas" },
+        { "click": "button:has-text('Hint')" },
+        { "click": "button:has-text('Hint')" },
+        { "click": "button:has-text('Hint')" },
+        { "wait": 400 }
+      ]
+    },
+    {
+      "name": "mobile-first-screen",
+      "path": "/?day=2026-10-10",
+      "theme": "dark",
+      "viewport": "mobile",
+      "actions": [{ "waitFor": "canvas" }, { "wait": 400 }]
+    },
+    {
+      "name": "editor",
+      "path": "/editor",
+      "theme": "dark",
+      "viewport": "desktop",
+      "actions": [
+        { "waitFor": "canvas" },
+        { "click": "button:has-text('Verify solvable')" },
+        { "waitFor": "text=exactly one solution" },
+        { "wait": 300 }
+      ]
+    }
+  ],
+  "gif": {
+    "path": "/?day=2026-10-07",
+    "theme": "dark",
+    "actions": [
+      { "waitFor": "canvas" },
+      { "wait": 1200 },
+      { "click": "button:has-text('Hint')" },
+      { "wait": 1100 },
+      { "click": "button:has-text('Hint')" },
+      { "wait": 1100 },
+      { "click": "button:has-text('Hint')" },
+      { "waitFor": "section[aria-label='Result']" },
+      { "wait": 1800 }
+    ]
+  }
 }

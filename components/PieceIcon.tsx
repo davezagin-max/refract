@@ -2,6 +2,7 @@
 import { mirrorAngle } from "@/lib/engine/hex";
 import type { PieceKind } from "@/lib/engine/optics";
 import { BOARD } from "@/lib/render/palette";
+import { prismArrow } from "@/lib/render/pieces";
 
 interface Props {
   kind: PieceKind;
@@ -63,18 +64,11 @@ function Prism({ right }: { right: boolean }) {
       return `${(Math.cos(angle) * radius).toFixed(3)},${(Math.sin(angle) * radius).toFixed(3)}`;
     })
     .join(" ");
-  // The same curved arrow as on the canvas: counter-clockwise for a left bend.
-  const r = 0.2;
-  const start = right ? Math.PI * 0.85 : Math.PI * 0.15;
-  const end = right ? start + Math.PI * 1.45 : start - Math.PI * 1.45;
-  const sx = Math.cos(start) * r;
-  const sy = Math.sin(start) * r;
-  const ex = Math.cos(end) * r;
-  const ey = Math.sin(end) * r;
-  const tangent = end + (right ? Math.PI / 2 : -Math.PI / 2);
-  const head = 0.12;
-  const wing = (offset: number) =>
-    `${(ex + Math.cos(tangent + offset) * head).toFixed(3)},${(ey + Math.sin(tangent + offset) * head).toFixed(3)}`;
+  // The same curved arrow as on the canvas, scaled up a little for the larger triangle.
+  const arrow = prismArrow(!right);
+  const k = 1.14;
+  const r = arrow.radius * k;
+  const at = (angle: number) => `${(Math.cos(angle) * r).toFixed(3)} ${(Math.sin(angle) * r).toFixed(3)}`;
   return (
     <>
       <polygon
@@ -85,19 +79,15 @@ function Prism({ right }: { right: boolean }) {
         strokeLinejoin="round"
       />
       <path
-        d={`M${sx.toFixed(3)} ${sy.toFixed(3)} A${r} ${r} 0 1 ${right ? 1 : 0} ${ex.toFixed(3)} ${ey.toFixed(3)}`}
+        d={`M${at(arrow.start)} A${r} ${r} 0 1 ${right ? 1 : 0} ${at(arrow.end)}`}
         fill="none"
         stroke="#fff"
-        strokeWidth={0.05}
+        strokeWidth={0.055}
         strokeLinecap="round"
       />
-      <polyline
-        points={`${wing(-2.5)} ${ex.toFixed(3)},${ey.toFixed(3)} ${wing(2.5)}`}
-        fill="none"
-        stroke="#fff"
-        strokeWidth={0.05}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <polygon
+        points={arrow.head.map(([x, y]) => `${(x * k).toFixed(3)},${(y * k).toFixed(3)}`).join(" ")}
+        fill="#fff"
       />
     </>
   );
