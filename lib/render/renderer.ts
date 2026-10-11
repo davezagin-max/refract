@@ -208,6 +208,9 @@ export class Renderer {
   /** The cell under a viewport point, or -1 when it is off the board. */
   cellAt(clientX: number, clientY: number): number {
     if (!this.grid) return -1;
+    // A click can arrive in the same frame as a layout change, before the
+    // resize observer has run: make sure the geometry matches the box first.
+    this.resize();
     const rect = this.canvas.getBoundingClientRect();
     return pointToCell(this.layout, this.grid, clientX - rect.left, clientY - rect.top);
   }

@@ -406,11 +406,11 @@ function Workbench() {
 
   return (
     <div className="game-shell mx-auto w-full max-w-[1140px]">
-      <div className="game-grid">
+      <div className="game-grid editor-grid">
         <div className="game-meta px-3 pt-2 lg:px-0 lg:pt-0">
           <h1 className="text-lg font-semibold leading-tight tracking-tight lg:text-3xl">Level editor</h1>
           <p className="text-xs text-muted lg:mt-1 lg:text-sm">
-            Build a board with its solution in place, then let the solver check it.
+            Place the solution, then let the solver check the level.
           </p>
         </div>
 
@@ -468,52 +468,48 @@ function Workbench() {
             ))}
           </div>
 
-          {isPiece(tool) && (
-            <div role="radiogroup" aria-label="Who gets this piece" className="flex gap-1 rounded-xl border border-border bg-surface p-1">
-              <button type="button" role="radio" aria-checked={!fixed} onClick={() => setFixed(false)} className={segment(!fixed)}>
-                Player&apos;s tray
-              </button>
-              <button type="button" role="radio" aria-checked={fixed} onClick={() => setFixed(true)} className={segment(fixed)}>
-                Fixed on the board
-              </button>
-            </div>
-          )}
-          {(tool === "emitter" || tool === "target") && (
-            <div role="radiogroup" aria-label="Colour" className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1">
-              {COLOR_ORDER.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  role="radio"
-                  aria-checked={color === c}
-                  aria-label={colorName(c)}
-                  title={colorName(c)}
-                  onClick={() => setColor(c)}
-                  className={`grid min-h-11 flex-1 place-items-center rounded-lg ${
-                    color === c ? "bg-raised shadow-[inset_0_0_0_1.5px_var(--accent)]" : "hover:bg-raised/60"
-                  }`}
-                >
-                  <span
-                    className="grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold text-bg"
-                    style={{ background: rgba(LIGHT_RGB[c], 1) }}
-                  >
-                    {COLOR_LETTERS[c]}
-                  </span>
+          <div className="flex min-h-[54px] items-stretch rounded-xl border border-border bg-surface p-1">
+            {isPiece(tool) ? (
+              <div role="radiogroup" aria-label="Who gets this piece" className="flex flex-1 gap-1">
+                <button type="button" role="radio" aria-checked={!fixed} onClick={() => setFixed(false)} className={segment(!fixed)}>
+                  Player&apos;s tray
                 </button>
-              ))}
-            </div>
-          )}
-          <p className="text-xs leading-relaxed text-muted">
-            {tool === "target"
-              ? "A target on a lit cell takes the colour of the light there. Click it again to re-read the light."
-              : tool === "emitter"
-                ? "Click an emitter again to turn it."
-                : tool === "wall"
+                <button type="button" role="radio" aria-checked={fixed} onClick={() => setFixed(true)} className={segment(fixed)}>
+                  Fixed on the board
+                </button>
+              </div>
+            ) : tool === "emitter" || tool === "target" ? (
+              <div role="radiogroup" aria-label="Colour" className="flex flex-1 items-center gap-1">
+                {COLOR_ORDER.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    role="radio"
+                    aria-checked={color === c}
+                    aria-label={colorName(c)}
+                    title={colorName(c)}
+                    onClick={() => setColor(c)}
+                    className={`grid min-h-11 flex-1 place-items-center rounded-lg ${
+                      color === c ? "bg-raised shadow-[inset_0_0_0_1.5px_var(--accent)]" : "hover:bg-raised/60"
+                    }`}
+                  >
+                    <span
+                      className="grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold text-bg"
+                      style={{ background: rgba(LIGHT_RGB[c], 1) }}
+                    >
+                      {COLOR_LETTERS[c]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="flex flex-1 items-center px-2 text-sm text-muted">
+                {tool === "wall"
                   ? "Walls stop light. Click one again to remove it."
-                  : tool === "erase"
-                    ? "Click anything to remove it. Right-click also erases with any tool."
-                    : "Click a piece again to turn it. Tray pieces are what the player has to place."}
-          </p>
+                  : "Click anything to remove it."}
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -594,6 +590,15 @@ function Workbench() {
               </div>
             ) : null}
           </div>
+          <p className="text-xs leading-relaxed text-muted">
+            {tool === "target"
+              ? "A target on a lit cell takes the colour of the light there. Click it again to re-read the light."
+              : tool === "emitter"
+                ? "A new emitter aims down the longest line. Click it again to turn it."
+                : isPiece(tool)
+                  ? "Click a piece again to turn it. Tray pieces are the ones the player has to place."
+                  : "Right-click erases with any tool. On a keyboard: arrows, Enter, R to turn, Backspace."}
+          </p>
         </div>
       </div>
 
