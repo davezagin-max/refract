@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3160",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -11,16 +11,12 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "smoke": "vitest run tests/kit/smoke.live.test.ts",
-    "record": "node scripts/record.mjs",
     "screenshots": "node scripts/screenshot.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0",
     "next": "16.4.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "zod": "^4.6.5"
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
@@ -35,5 +31,6 @@
     "typescript": "^5",
     "vitest": "^5.0.3"
   },
-  "packageManager": "pnpm@11.24.0"
+  "packageManager": "pnpm@11.24.0",
+  "description": "A daily laser puzzle on a hex grid: levels are generated and proven solvable by a solver."
 }
