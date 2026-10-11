@@ -264,5 +264,53 @@ describe("solver verdicts", () => {
       pruned: { wrongColour: 0, unreachable: 0, tooMany: 0 },
     });
     expect(unsolvable.tone).toBe("bad");
+    expect(unsolvable.detail).toContain("40 positions");
+  });
+
+  it("says so when the only solution leaves tray pieces over", () => {
+    // One mirror at the centre sends the red beam to the target. The prism has
+    // no job and can never get one: a prism does nothing to pure red light.
+    const draft: Draft = {
+      ...emptyDraft(2),
+      emitters: [{ cell: at(2, -2, 0), dir: 0, color: RED }],
+      targets: [{ cell: at(2, 2, -2), color: RED }],
+      walls: [at(2, 2, -1)],
+      loose: [
+        { cell: at(2, 0, 0), kind: "mirror", orient: 1 },
+        { cell: at(2, -1, 2), kind: "prism", orient: 0 },
+      ],
+    };
+    const puzzle = draftPuzzle(draft);
+    const result = solve(puzzle);
+    // The solver stops at the first lit board, so it reports one solution of one piece.
+    expect(result.unique).toBe(true);
+    expect(result.solutions[0]).toEqual([{ cell: at(2, 0, 0), kind: "mirror", orient: 1 }]);
+    const spare = verdict(result, puzzle.tray.length);
+    expect(spare.tone).toBe("warn");
+    expect(spare.title).toBe("Solvable, with a piece to spare");
+    expect(spare.detail).toContain("1 of the 2 tray pieces");
+    expect(spare.difficulty).toBeNull();
+
+    // With the spare piece gone the same board is a clean, unique level.
+    const tight = draftPuzzle({ ...draft, loose: draft.loose.slice(0, 1) });
+    const clean = verdict(solve(tight), tight.tray.length);
+    expect(clean.tone).toBe("good");
+    expect(clean.title).toMatch(/exactly one solution/);
+    expect(clean.difficulty?.label).toBe("Easy");
+
+    // Targets already lit: nothing is needed at all.
+    const idle = verdict(
+      {
+        status: "solved",
+        solutions: [[]],
+        unique: true,
+        exhausted: true,
+        nodes: 1,
+        pruned: { wrongColour: 0, unreachable: 0, tooMany: 0 },
+      },
+      3,
+    );
+    expect(idle.title).toBe("Solvable, with pieces to spare");
+    expect(idle.detail).toContain("already lit");
   });
 });

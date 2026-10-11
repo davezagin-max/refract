@@ -38,7 +38,7 @@ import {
   type Draft,
   type Tool,
 } from "@/lib/game/editor";
-import { requestSolve } from "@/lib/game/engine-client";
+import { CANCELLED, cancelSolves, requestSolve } from "@/lib/game/engine-client";
 import { formatTime } from "@/lib/game/share";
 import { play } from "@/lib/game/sound";
 import { KEYS, load, save } from "@/lib/game/storage";
@@ -163,6 +163,7 @@ function Workbench() {
   const [linked, setLinked] = useState(start.linked);
   const boardApi = useRef<BoardApi | null>(null);
   const pressed = useRef<{ id: number; cell: number } | null>(null);
+  const verdictRef = useRef<HTMLDivElement>(null);
 
   const grid = useMemo(() => makeGrid(draft.radius), [draft.radius]);
   const puzzle = useMemo(() => draftPuzzle(draft), [draft]);
@@ -173,7 +174,7 @@ function Workbench() {
   const playId = useMemo(() => `custom:${hashString(puzzleKey).toString(36)}`, [puzzleKey]);
   // A result only counts for the board it was computed for.
   const current = check && check.key === puzzleKey ? check : null;
-  const report = current?.state === "done" ? verdict(current.result) : null;
+  const report = current?.state === "done" ? verdict(current.result, puzzle.tray.length) : null;
   const other =
     current?.state === "done" && current.result.solutions.length > 1
       ? current.result.solutions[1]
@@ -189,6 +190,20 @@ function Workbench() {
     window.addEventListener("hashchange", reload);
     return () => window.removeEventListener("hashchange", reload);
   }, []);
+
+  // A search for a board that has since been edited is wasted work: stop it,
+  // and stop it too if the visitor leaves the editor while it runs.
+  useEffect(() => {
+    if (check?.state === "running" && check.key !== puzzleKey) cancelSolves();
+  }, [check, puzzleKey]);
+  useEffect(() => () => void cancelSolves(), []);
+
+  // On a phone the verdict lands below the fold: bring it into view when it arrives.
+  useEffect(() => {
+    if (check?.state !== "done") return;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    verdictRef.current?.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" });
+  }, [check]);
 
   const adopt = () => {
     if (!linked) return;
@@ -278,8 +293,12 @@ function Workbench() {
       const { result, ms } = await requestSolve(puzzle, VERIFY_NODES);
       // If the board was edited meanwhile, a newer check owns the slot: leave it alone.
       setCheck((latest) => (latest?.key === key ? { key, state: "done", result, ms } : latest));
-    } catch {
-      setCheck((latest) => (latest?.key === key ? { key, state: "failed" } : latest));
+    } catch (error) {
+      // Stopped on purpose (the Stop button, or the board changed under it): just free the slot.
+      const stopped = error instanceof Error && error.message === CANCELLED;
+      setCheck((latest) =>
+        latest?.key === key ? (stopped ? null : { key, state: "failed" }) : latest,
+      );
     }
   };
 
@@ -506,9 +525,7 @@ function Workbench() {
                 }`}
               >
                 <ToolIcon tool={entry.tool} />
-                <span className="hidden sm:block" aria-hidden="true">
-                  {entry.label}
-                </span>
+                <span aria-hidden="true">{entry.label}</span>
               </button>
             ))}
           </div>
@@ -577,7 +594,7 @@ function Workbench() {
             </button>
           </div>
 
-          <div aria-live="polite" className="empty:hidden">
+          <div ref={verdictRef} aria-live="polite" className="scroll-mb-3 empty:hidden">
             {problems.length > 0 ? (
               <ul className="space-y-1 rounded-xl border border-border bg-surface/60 p-3 text-sm text-muted">
                 {problems.map((problem) => (
@@ -585,9 +602,16 @@ function Workbench() {
                 ))}
               </ul>
             ) : current?.state === "running" ? (
-              <p className="rounded-xl border border-border bg-surface/60 p-3 text-sm text-muted">
-                The solver is searching every placement in a background thread…
-              </p>
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface/60 p-3 text-sm text-muted">
+                <p>The solver is searching every placement in a background thread…</p>
+                <button
+                  type="button"
+                  onClick={() => cancelSolves()}
+                  className="min-h-11 shrink-0 rounded-lg border border-border px-3 font-medium text-fg hover:bg-raised"
+                >
+                  Stop
+                </button>
+              </div>
             ) : current?.state === "failed" ? (
               <p className="rounded-xl border border-danger/50 bg-surface p-3 text-sm text-danger">
                 The solver could not run in this browser. Try again.

@@ -351,14 +351,18 @@ export interface Verdict {
   difficulty: ReturnType<typeof difficultyOf> | null;
 }
 
-/** Put the solver's answer into words. */
-export function verdict(result: SolveResult): Verdict {
+/**
+ * Put the solver's answer into words. `traySize` is the number of pieces the
+ * player gets: the solver stops at the first board that lights every target,
+ * so a solution that leaves pieces over is reported as exactly that.
+ */
+export function verdict(result: SolveResult, traySize?: number): Verdict {
   const nodes = result.nodes.toLocaleString("en-US");
   if (result.status === "unsolvable") {
     return {
       tone: "bad",
       title: "No solution",
-      detail: `The solver tried every placement (${nodes} positions) and none lights all the targets.`,
+      detail: `The solver ruled out every placement after examining ${nodes} positions: none lights all the targets.`,
       difficulty: null,
     };
   }
@@ -367,6 +371,22 @@ export function verdict(result: SolveResult): Verdict {
       tone: "warn",
       title: "Too big to verify",
       detail: `The solver stopped after ${nodes} positions without an answer. Fewer tray pieces or more walls and targets will narrow the search.`,
+      difficulty: null,
+    };
+  }
+  const used = result.solutions[0]?.length ?? 0;
+  if (result.unique && traySize !== undefined && used < traySize) {
+    // The search stops descending once the targets are lit, so "one solution"
+    // here means one set of pieces that all matter. The pieces left over can
+    // be put down anywhere they do no harm, which is not a single answer.
+    const spare = traySize - used;
+    return {
+      tone: "warn",
+      title: spare === 1 ? "Solvable, with a piece to spare" : "Solvable, with pieces to spare",
+      detail:
+        used === 0
+          ? `The targets are already lit with nothing placed, so none of the ${traySize} tray pieces is needed (${nodes} positions examined).`
+          : `The solver found one way to light every target, and it uses only ${used} of the ${traySize} tray pieces (${nodes} positions examined). Take the spare ${spare === 1 ? "piece" : "pieces"} out of the tray, or add a target that needs ${spare === 1 ? "it" : "them"}.`,
       difficulty: null,
     };
   }
