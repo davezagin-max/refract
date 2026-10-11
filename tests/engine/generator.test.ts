@@ -126,7 +126,7 @@ describe("daily generator", () => {
     expect(attemptHint(addDays("2026-10-01", HINTS.length), GENERATOR_VERSION)).toBeUndefined();
     expect(attemptHint("2026-09-30", GENERATOR_VERSION)).toBeUndefined();
     // A sample deep in the table still matches the full search.
-    for (const offset of [150, 271, 388]) {
+    for (const offset of [150, 271, 388, 1500]) {
       const date = addDays("2026-10-01", offset);
       const daily = generateDaily(date);
       expect(attemptHint(date, GENERATOR_VERSION), date).toBe(daily.attempts - 1);
