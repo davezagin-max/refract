@@ -318,6 +318,8 @@ export function Game({
     index: number,
     cell: number,
   ) => {
+    // One finger at a time: a second touch must not orphan a drag in progress.
+    if (press.current && press.current.pointerId !== event.pointerId) return;
     onInteract?.();
     suppressClick.current = false;
     const s = stateRef.current;
@@ -404,6 +406,7 @@ export function Game({
     if (p.origin !== "board" || p.cell < 0) return;
     // A tap on the board: turn the piece there, or put the selected piece down.
     const s = stateRef.current;
+    if (s.solved) return;
     const index = pieceAt(s, p.cell);
     if (index >= 0) {
       if (s.locked[index]) {
@@ -643,6 +646,7 @@ export function Game({
             onPointerMove={onBoardPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerCancel}
+            onLostPointerCapture={onPointerCancel}
             onContextMenu={(event) => event.preventDefault()}
             onKeyDown={onKeyDown}
             onFocus={(event) => setKeyboard(event.currentTarget.matches(":focus-visible"))}

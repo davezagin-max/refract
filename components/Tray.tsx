@@ -73,6 +73,7 @@ export function Tray({
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
                 onPointerCancel={onPointerCancel}
+                onLostPointerCapture={onPointerCancel}
                 onClick={(event) => onSelect(index, event.detail === 0)}
                 className={`relative grid h-14 w-14 touch-none select-none place-items-center rounded-xl border transition-colors ${
                   isHeld
