@@ -1,59 +1,90 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Components only reference tokens, so a project gets its own
- * visual identity (and dark mode) by changing the values in these two blocks.
+ * Design tokens. One theme: deep navy with neon light. Components only use
+ * the tokens, and the canvas renderer reads its colours from lib/render/palette.
  */
 :root {
-  --bg: #ffffff;
-  --fg: #14161a;
-  --muted: #5c6370;
-  --surface: #f4f5f7;
-  --border: #d9dce1;
-  --accent: #1f5eff;
-  --accent-fg: #ffffff;
-  --danger: #b3261e;
-  --success: #1a7f37;
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  --bg: #0e1013;
-  --fg: #eceef2;
-  --muted: #9aa2ae;
-  --surface: #171a1f;
-  --border: #2b3038;
-  --accent: #7aa7ff;
-  --accent-fg: #0e1013;
-  --danger: #ff8a80;
-  --success: #56d364;
+  --bg: #060a18;
+  --fg: #e9eeff;
+  --muted: #94a1cc;
+  --surface: #0c1330;
+  --raised: #141d44;
+  --border: #26346a;
+  --accent: #5ee6ff;
+  --accent-fg: #03131a;
+  --danger: #ff7189;
+  --success: #4dffa6;
+  --gold: #ffd166;
   color-scheme: dark;
 }
-
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
   --color-bg: var(--bg);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-surface: var(--surface);
+  --color-raised: var(--raised);
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-gold: var(--gold);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-body {
+html {
   background: var(--bg);
+}
+
+body {
+  background:
+    radial-gradient(1200px 700px at 50% -10%, rgba(64, 96, 255, 0.14), transparent 60%),
+    var(--bg);
   color: var(--fg);
+  overflow-x: hidden;
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* The board draws its own keyboard cursor, so the ring sits tight around it. */
+.board-focus:focus-visible {
+  outline-offset: -2px;
+  border-radius: 12px;
+}
+
+dialog::backdrop {
+  background: rgba(3, 6, 16, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.28s ease-out both;
+}
+
+@keyframes sweep {
+  0% {
+    stroke-dashoffset: 120;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -63,5 +94,52 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * Game layout. On a phone the board takes whatever height is left between the
+ * status row and the tray, so everything needed to play is on the first screen.
+ * On a wide screen the board sits beside the controls.
+ */
+.game-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(280px, 1fr) auto;
+  grid-template-areas: "meta" "board" "panel";
+  row-gap: 0.5rem;
+  min-height: calc(100dvh - var(--header-h));
+}
+
+.game-meta {
+  grid-area: meta;
+}
+
+.game-board {
+  grid-area: board;
+}
+
+.game-panel {
+  grid-area: panel;
+}
+
+:root {
+  --header-h: 3.25rem;
+  --footer-h: 2.75rem;
+}
+
+@media (min-width: 1024px) {
+  .game-grid {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "board meta" "board panel";
+    column-gap: 2rem;
+    row-gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    min-height: min(calc(100dvh - var(--header-h) - var(--footer-h)), 900px);
+  }
+
+  .game-board {
+    min-height: 520px;
   }
 }
