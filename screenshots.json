@@ -6,28 +6,42 @@
       "path": "/?day=2026-10-11",
       "viewport": "desktop",
       "actions": [
-        { "waitFor": "canvas" },
-        { "wait": 300 },
-        { "solve": 4, "pace": 450 },
-        { "wait": 400 }
+        {
+          "waitFor": "canvas"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "solve": 4,
+          "pace": 450
+        },
+        {
+          "wait": 400
+        }
       ]
-    },
-    {
-      "name": "first-screen",
-      "path": "/?day=2026-10-11",
-      "viewport": "desktop",
-      "actions": [{ "waitFor": "canvas" }, { "wait": 400 }]
     },
     {
       "name": "hero",
       "path": "/?day=2026-10-11",
       "viewport": "desktop",
       "actions": [
-        { "waitFor": "canvas" },
-        { "wait": 300 },
-        { "solve": 5, "pace": 450 },
-        { "waitFor": "section[aria-label='Result']" },
-        { "wait": 300 }
+        {
+          "waitFor": "canvas"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "solve": 5,
+          "pace": 450
+        },
+        {
+          "waitFor": "section[aria-label='Result']"
+        },
+        {
+          "wait": 300
+        }
       ]
     },
     {
@@ -35,38 +49,73 @@
       "path": "/?day=2026-10-10",
       "viewport": "mobile",
       "actions": [
-        { "waitFor": "canvas" },
-        { "wait": 300 },
-        { "solve": 3, "pace": 450 },
-        { "wait": 400 }
+        {
+          "waitFor": "canvas"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "solve": 3,
+          "pace": 450
+        },
+        {
+          "wait": 400
+        }
       ]
     },
     {
       "name": "mobile-first-screen",
       "path": "/?day=2026-10-10",
       "viewport": "mobile",
-      "actions": [{ "waitFor": "canvas" }, { "wait": 400 }]
+      "actions": [
+        {
+          "waitFor": "canvas"
+        },
+        {
+          "wait": 400
+        }
+      ]
     },
     {
       "name": "editor",
       "path": "/editor",
       "viewport": "desktop",
       "actions": [
-        { "waitFor": "canvas" },
-        { "click": "button:has-text('Verify solvable')" },
-        { "waitFor": "text=exactly one solution" },
-        { "wait": 300 }
+        {
+          "waitFor": "canvas"
+        },
+        {
+          "click": "button:has-text('Verify solvable')"
+        },
+        {
+          "waitFor": "text=exactly one solution"
+        },
+        {
+          "wait": 300
+        }
       ]
     }
   ],
   "gif": {
     "path": "/?day=2026-10-07",
     "actions": [
-      { "waitFor": "canvas" },
-      { "wait": 900 },
-      { "solve": 3, "pace": 650 },
-      { "waitFor": "section[aria-label='Result']" },
-      { "wait": 1500 }
+      {
+        "waitFor": "canvas"
+      },
+      {
+        "wait": 900
+      },
+      {
+        "solve": 3,
+        "pace": 650
+      },
+      {
+        "waitFor": "section[aria-label='Result']"
+      },
+      {
+        "wait": 1500
+      }
     ]
   }
 }
