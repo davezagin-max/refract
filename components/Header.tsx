@@ -57,7 +57,7 @@ function SoundToggle() {
 export function Header({ children }: { children?: ReactNode }) {
   return (
     <header className="flex h-[var(--header-h)] shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3 lg:px-6">
-      <Link href="/" className="flex items-center gap-2 rounded-md text-lg font-semibold tracking-tight">
+      <Link href="/" className="flex min-h-11 items-center gap-2 rounded-md text-lg font-semibold tracking-tight">
         <Logo />
         Refract
       </Link>
@@ -71,11 +71,11 @@ export function Header({ children }: { children?: ReactNode }) {
 
 export function Footer() {
   return (
-    <footer className="flex min-h-[var(--footer-h)] flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-border/60 px-4 py-2 text-center text-xs text-muted">
+    <footer className="flex min-h-[var(--footer-h)] flex-wrap items-center justify-center gap-x-4 border-t border-border/60 px-4 text-center text-xs text-muted">
       <span>Built with Claude Code and Claude Opus 5.5.</span>
       <a
         href="https://github.com/davezagin-max/refract"
-        className="underline decoration-border underline-offset-4 hover:text-fg"
+        className="inline-flex min-h-11 items-center underline decoration-border underline-offset-4 hover:text-fg"
       >
         Source on GitHub
       </a>

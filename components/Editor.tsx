@@ -389,21 +389,23 @@ function Workbench() {
             <h1 className="text-lg font-semibold leading-tight tracking-tight lg:text-3xl">
               Custom level
             </h1>
-            <p className="text-xs text-muted lg:mt-1 lg:text-sm">
-              {report?.difficulty ? (
-                <Difficulty nodes={(current as { result: SolveResult }).result.nodes} />
-              ) : (
-                "Made in the editor"
-              )}
-              {" · "}
+            <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted lg:mt-1 lg:text-sm">
+              <span>
+                {report?.difficulty ? (
+                  <Difficulty nodes={(current as { result: SolveResult }).result.nodes} />
+                ) : (
+                  "Made in the editor"
+                )}
+              </span>
+              {/* Negative margin: a 44px touch target without a taller header. */}
               <button
                 type="button"
                 onClick={() => setMode("edit")}
-                className="font-medium text-accent underline-offset-4 hover:underline"
+                className="-my-3 min-h-11 font-medium text-accent underline-offset-4 hover:underline"
               >
                 Back to the editor
               </button>
-            </p>
+            </div>
           </div>
         }
         result={(done) => (
@@ -486,7 +488,7 @@ function Workbench() {
           <div
             role="radiogroup"
             aria-label="Tool"
-            className="grid grid-cols-7 gap-1 rounded-xl border border-border bg-surface p-1"
+            className="grid grid-cols-7 gap-0.5 rounded-xl border border-border bg-surface p-1 sm:gap-1"
           >
             {TOOLS.map((entry) => (
               <button

@@ -90,7 +90,7 @@ export function Archive({ today, current, history, inProgress, onPick }: Props) 
         </button>
       </div>
 
-      <div className="mt-1 grid grid-cols-7 gap-1 text-center">
+      <div className="mt-1 grid grid-cols-7 gap-0.5 text-center sm:gap-1">
         {WEEKDAYS.map((name) => (
           <div key={name} className="py-1 text-[11px] font-medium uppercase text-muted">
             <span aria-hidden="true">{name.slice(0, 2)}</span>
