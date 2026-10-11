@@ -14,6 +14,7 @@ import { Game, type GameResult } from "./Game";
 import { Footer, Header, IconButton, IconLink } from "./Header";
 import { Help } from "./Help";
 import { CalendarIcon, EditIcon, HelpIcon } from "./icons";
+import { Placeholder } from "./Placeholder";
 import { Countdown, ResultPanel } from "./ResultPanel";
 
 const gameId = (date: string) => `daily:${GENERATOR_VERSION}:${date}`;
@@ -74,38 +75,6 @@ function Frame({
       </main>
       <Footer />
     </>
-  );
-}
-
-function Placeholder({ text, children }: { text: string; children?: React.ReactNode }) {
-  return (
-    <div className="game-shell mx-auto w-full max-w-[1140px]">
-      <div className="game-board grid min-h-[calc(100dvh-var(--header-h))] place-items-center lg:min-h-[520px]">
-        <div className="flex flex-col items-center gap-4 px-6 text-center">
-          <svg width="96" height="96" viewBox="-50 -50 100 100" aria-hidden="true">
-            <polygon
-              points="40,0 20,34.6 -20,34.6 -40,0 -20,-34.6 20,-34.6"
-              fill="none"
-              stroke="var(--border)"
-              strokeWidth="2"
-            />
-            <polygon
-              points="40,0 20,34.6 -20,34.6 -40,0 -20,-34.6 20,-34.6"
-              fill="none"
-              stroke="var(--accent)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeDasharray="60 180"
-              style={{ animation: "sweep 1.1s linear infinite" }}
-            />
-          </svg>
-          <p role="status" className="text-sm text-muted">
-            {text}
-          </p>
-          {children}
-        </div>
-      </div>
-    </div>
   );
 }
 
