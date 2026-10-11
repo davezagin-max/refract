@@ -74,8 +74,9 @@ export function Help() {
           </span>
         </p>
         <p className="mt-2">
-          A target that gets an extra colour is wrong, so sometimes the job is to keep light away.
-          Each target carries its colour&apos;s letter, so you never have to tell colours apart by eye.
+          A target that gets an extra colour is wrong, so sometimes the job is to keep light away:
+          a dashed ring inside a target shows the wrong colour arriving. Each target carries its
+          colour&apos;s letter, so you never have to tell colours apart by eye.
         </p>
       </div>
 

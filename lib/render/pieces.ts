@@ -199,7 +199,11 @@ export function drawEmitter(ctx: Ctx, u: number, x: number, y: number, dir: numb
   ctx.restore();
 }
 
-/** A target socket: hollow while it waits, filled once it has exactly its colour. */
+/**
+ * A target socket: hollow while it waits, filled once it has exactly its
+ * colour. `got` is the light arriving now; when that is the wrong colour, a
+ * dashed inner ring shows what is coming in, so "lit but not right" is visible.
+ */
 export function drawTarget(
   ctx: Ctx,
   u: number,
@@ -208,6 +212,7 @@ export function drawTarget(
   color: Color,
   lit: boolean,
   breathe: number,
+  got: Color = 0,
 ): void {
   ctx.beginPath();
   ctx.arc(x, y, u * 0.47, 0, Math.PI * 2);
@@ -221,6 +226,14 @@ export function drawTarget(
     ctx.arc(x, y, u * 0.31, 0, Math.PI * 2);
     ctx.fillStyle = lightCss(color);
     ctx.fill();
+  } else if (got !== 0 && got !== color) {
+    ctx.beginPath();
+    ctx.arc(x, y, u * 0.335, 0, Math.PI * 2);
+    ctx.setLineDash([u * 0.11, u * 0.1]);
+    ctx.lineWidth = u * 0.05;
+    ctx.strokeStyle = lightCss(got, 0.95);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
   ctx.font = `700 ${Math.round(u * 0.36)}px ${FONT}`;
   ctx.textAlign = "center";

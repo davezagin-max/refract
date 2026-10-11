@@ -502,7 +502,9 @@ export class Renderer {
     ctx.globalCompositeOperation = "source-over";
     for (const target of puzzle.targets) {
       const { x, y } = cellPx(layout, grid, target.cell);
-      drawTarget(ctx, u, x, y, target.color, this.litShown.has(target.cell), breathe);
+      // The wrong-colour ring waits for the beams to settle, so it never flashes mid-animation.
+      const got = settled ? trace.light[target.cell] : 0;
+      drawTarget(ctx, u, x, y, target.color, this.litShown.has(target.cell), breathe, got);
     }
     for (const emitter of puzzle.emitters) {
       const { x, y } = cellPx(layout, grid, emitter.cell);
