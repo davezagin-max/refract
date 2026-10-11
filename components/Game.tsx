@@ -326,8 +326,11 @@ export function Game({
     index: number,
     cell: number,
   ) => {
-    // One finger at a time: a second touch must not orphan a drag in progress.
-    if (press.current && press.current.pointerId !== event.pointerId) return;
+    // One finger at a time: a second touch must not take over a drag in progress.
+    if (!event.isPrimary) return;
+    // A new primary pointer while a drag is still recorded means the last
+    // gesture ended without an event reaching us: drop it.
+    if (press.current?.dragging) setDrag(null);
     onInteract?.();
     suppressClick.current = false;
     const s = stateRef.current;
