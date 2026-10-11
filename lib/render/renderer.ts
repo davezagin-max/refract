@@ -7,7 +7,9 @@
  *    runs of one colour go into a single path, so a frame is about five
  *    strokes per colour no matter how many segments there are;
  *  - point glows (beam heads, lit targets) are one cached radial sprite per
- *    colour, drawn with `drawImage`.
+ *    colour, drawn with `drawImage`;
+ *  - the renderer times its own frames and, if a device cannot keep up, draws
+ *    at a lower pixel density (see quality.ts).
  *
  * The renderer owns the animation only. It is handed a scene (what is on the
  * board) and works out the light itself with the same `trace` the game uses.
@@ -20,6 +22,7 @@ import { planBeams, visibleLength, type BeamPlan, type FadingRun } from "./beams
 import { cellPx, fitBoard, pointToCell, type Layout } from "./layout";
 import { BOARD, GLOW_RGB, LIGHT_RGB, coreCss, rgba } from "./palette";
 import { drawEmitter, drawPiece, drawTarget, hexPath, type PieceStyle } from "./pieces";
+import { DENSITY_STEPS, QualityGovernor } from "./quality";
 
 export interface ScenePiece {
   /** Stable identity, so a rotation can be animated and a new piece can pop in. */
@@ -57,7 +60,6 @@ const FADE_MS = 170;
 const PULSE_MS = 560;
 const POP_MS = 190;
 const WIN_MS = 1250;
-const MAX_DPR = 3;
 
 interface Pose {
   pose: number;
@@ -104,6 +106,7 @@ export class Renderer {
   private winAt = -1;
   private winEnded = true;
 
+  private readonly quality = new QualityGovernor(DENSITY_STEPS[0]);
   private reduced = false;
   private raf = 0;
   private last = 0;
@@ -129,7 +132,7 @@ export class Renderer {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     if (width === 0 || height === 0) return;
-    const dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1);
+    const dpr = Math.min(this.quality.limit, window.devicePixelRatio || 1);
     if (width === this.width && height === this.height && dpr === this.dpr) return;
     this.width = width;
     this.height = height;
@@ -232,9 +235,12 @@ export class Renderer {
 
   private frame = (time: number): void => {
     this.raf = 0;
-    const dt = this.last === 0 ? 16 : Math.min(64, time - this.last);
+    const interval = this.last === 0 ? 0 : time - this.last;
+    const dt = this.last === 0 ? 16 : Math.min(64, interval);
     this.last = time;
     this.now = time;
+    // Too many late frames in a row: fall back to a lower pixel density.
+    if (this.quality.sample(interval, this.dpr)) this.resize();
     this.draw(time, dt);
     // With reduced motion nothing moves by itself, so one frame per change is enough.
     if (!this.reduced && !this.destroyed) this.raf = requestAnimationFrame(this.frame);
