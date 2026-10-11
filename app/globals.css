@@ -99,13 +99,20 @@ dialog::backdrop {
 
 /*
  * Game layout. On a phone the board takes whatever height is left between the
- * status row and the tray, so everything needed to play is on the first screen.
- * On a wide screen the board sits beside the controls.
+ * status row and the tray, so everything needed to play is on the first
+ * screen; the text description sits just below the fold. On a wide screen
+ * the board sits beside the controls, and the inner grid dissolves into the
+ * outer one (display: contents) so both share the same columns.
  */
+:root {
+  --header-h: 3.25rem;
+  --footer-h: 2.75rem;
+}
+
 .game-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(280px, 1fr) auto;
+  grid-template-rows: auto minmax(320px, 1fr) auto;
   grid-template-areas: "meta" "board" "panel";
   row-gap: 0.5rem;
   min-height: calc(100dvh - var(--header-h));
@@ -123,20 +130,24 @@ dialog::backdrop {
   grid-area: panel;
 }
 
-:root {
-  --header-h: 3.25rem;
-  --footer-h: 2.75rem;
+.game-extra {
+  grid-area: extra;
 }
 
 @media (min-width: 1024px) {
-  .game-grid {
+  .game-shell {
+    display: grid;
     grid-template-columns: minmax(0, 1fr) 340px;
-    grid-template-rows: auto 1fr;
-    grid-template-areas: "board meta" "board panel";
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "board meta" "board panel" "board extra";
     column-gap: 2rem;
     row-gap: 1rem;
     padding: 1.25rem 1.5rem;
     min-height: min(calc(100dvh - var(--header-h) - var(--footer-h)), 900px);
+  }
+
+  .game-grid {
+    display: contents;
   }
 
   .game-board {

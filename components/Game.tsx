@@ -583,106 +583,127 @@ export function Game({
   );
   const descriptionId = `board-status-${id.replace(/[^a-z0-9]/gi, "-")}`;
 
+  const details = (
+    <details className="group rounded-xl border border-border bg-surface/60 text-sm">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 text-muted hover:text-fg">
+        Board in words
+        <span aria-hidden="true" className="text-xs group-open:rotate-180">
+          ▾
+        </span>
+      </summary>
+      <ul className="space-y-1 px-3 pb-3 text-muted">
+        {summary.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
+    </details>
+  );
+  const howTo = showHowTo && !state.solved;
+
   return (
-    <div className="game-grid mx-auto w-full max-w-[1140px]">
-      <div className="game-meta flex items-end justify-between gap-3 px-3 pt-2 lg:flex-col lg:items-stretch lg:gap-4 lg:px-0 lg:pt-0">
-        <div className="min-w-0">{heading}</div>
-        <dl className="flex shrink-0 gap-4 text-right lg:gap-0 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:text-left">
-          <Stat label="Lit" value={`${lit}/${total}`} highlight={lit === total} />
-          <Stat label="Moves" value={String(state.moves)} />
-          <Stat label="Time" value={formatTime(shownTime)} />
-        </dl>
+    <div className="game-shell mx-auto w-full max-w-[1140px]">
+      <div className="game-grid">
+        <div className="game-meta flex items-end justify-between gap-3 px-3 pt-2 lg:flex-col lg:items-stretch lg:gap-4 lg:px-0 lg:pt-0">
+          <div className="min-w-0">{heading}</div>
+          <dl className="flex shrink-0 gap-4 text-right lg:gap-0 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:text-left">
+            <Stat label="Lit" value={`${lit}/${total}`} highlight={lit === total} />
+            <Stat label="Moves" value={String(state.moves)} />
+            <Stat label="Time" value={formatTime(shownTime)} />
+          </dl>
+        </div>
+
+        <section className="game-board relative" aria-label="Puzzle board">
+          <Board
+            scene={scene}
+            hooks={hooks}
+            apiRef={boardApi}
+            className="absolute inset-0"
+            role="application"
+            aria-roledescription="puzzle board"
+            aria-label="Puzzle board. Arrow keys move the cursor. Enter picks up or places a piece, R turns it, Backspace returns it to the tray, Z undoes, H gives a hint."
+            aria-describedby={descriptionId}
+            onPointerDown={onBoardPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerCancel}
+            onContextMenu={(event) => event.preventDefault()}
+            onKeyDown={onKeyDown}
+            onFocus={(event) => setKeyboard(event.currentTarget.matches(":focus-visible"))}
+            onBlur={() => setKeyboard(false)}
+          />
+          {howTo && (
+            // On a phone the steps float over the foot of the board, so dismissing
+            // them on the first touch moves nothing under the player's finger.
+            <div className="pointer-events-none absolute inset-x-3 bottom-1 lg:hidden">
+              <HowTo />
+            </div>
+          )}
+          <p id={descriptionId} className="sr-only">
+            {lit} of {total} targets lit. {state.solved ? "Solved." : ""}
+          </p>
+          <p role="status" aria-live="polite" className="sr-only">
+            {message}
+          </p>
+        </section>
+
+        <div className="game-panel flex flex-col gap-3 px-3 pb-3 lg:px-0 lg:pb-0">
+          {celebrated && final ? (
+            result(final)
+          ) : (
+            <>
+              <Tray
+                puzzle={puzzle}
+                placements={state.placements}
+                locked={state.locked}
+                held={held?.index ?? null}
+                dragging={drag?.index ?? null}
+                disabled={state.solved}
+                cellLabel={(cell) => cellName(grid, cell)}
+                onPointerDown={(event, index) => startPress(event, "tray", index, -1)}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerCancel}
+                onSelect={(index, fromKeyboard) => {
+                  if (suppressClick.current) {
+                    suppressClick.current = false;
+                    return;
+                  }
+                  onInteract?.();
+                  toggleHeld(index);
+                  if (fromKeyboard && held?.index !== index) boardApi.current?.focus();
+                }}
+              />
+              <div className="grid grid-cols-4 gap-2">
+                <ActionButton label="Undo" onClick={undo} disabled={state.undo.length === 0 || state.solved}>
+                  <UndoIcon />
+                </ActionButton>
+                <ActionButton label="Redo" onClick={redo} disabled={state.redo.length === 0 || state.solved}>
+                  <RedoIcon />
+                </ActionButton>
+                <ActionButton
+                  label={state.hints > 0 ? `Hint (${state.hints})` : "Hint"}
+                  onClick={hint}
+                  disabled={!canHint}
+                  title="Place one piece where it belongs and lock it"
+                >
+                  <HintIcon />
+                </ActionButton>
+                <ActionButton label="Clear" onClick={reset} disabled={!canReset}>
+                  <ResetIcon />
+                </ActionButton>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      <section className="game-board relative min-h-[280px]" aria-label="Puzzle board">
-        <Board
-          scene={scene}
-          hooks={hooks}
-          apiRef={boardApi}
-          className="absolute inset-0"
-          role="application"
-          aria-roledescription="puzzle board"
-          aria-label="Puzzle board. Arrow keys move the cursor. Enter picks up or places a piece, R turns it, Backspace returns it to the tray, Z undoes, H gives a hint."
-          aria-describedby={descriptionId}
-          onPointerDown={onBoardPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerCancel}
-          onContextMenu={(event) => event.preventDefault()}
-          onKeyDown={onKeyDown}
-          onFocus={(event) => setKeyboard(event.currentTarget.matches(":focus-visible"))}
-          onBlur={() => setKeyboard(false)}
-        />
-        <p id={descriptionId} className="sr-only">
-          {lit} of {total} targets lit. {state.solved ? "Solved." : ""}
-        </p>
-        <p role="status" aria-live="polite" className="sr-only">
-          {message}
-        </p>
-      </section>
-
-      <div className="game-panel flex flex-col gap-3 px-3 pb-4 lg:px-0 lg:pb-0">
-        {showHowTo && !celebrated && <HowTo />}
-        {celebrated && final ? (
-          result(final)
-        ) : (
-          <>
-            <Tray
-              puzzle={puzzle}
-              placements={state.placements}
-              locked={state.locked}
-              held={held?.index ?? null}
-              dragging={drag?.index ?? null}
-              disabled={state.solved}
-              cellLabel={(cell) => cellName(grid, cell)}
-              onPointerDown={(event, index) => startPress(event, "tray", index, -1)}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerCancel}
-              onSelect={(index, fromKeyboard) => {
-                if (suppressClick.current) {
-                  suppressClick.current = false;
-                  return;
-                }
-                onInteract?.();
-                toggleHeld(index);
-                if (fromKeyboard && held?.index !== index) boardApi.current?.focus();
-              }}
-            />
-            <div className="grid grid-cols-4 gap-2">
-              <ActionButton label="Undo" onClick={undo} disabled={state.undo.length === 0 || state.solved}>
-                <UndoIcon />
-              </ActionButton>
-              <ActionButton label="Redo" onClick={redo} disabled={state.redo.length === 0 || state.solved}>
-                <RedoIcon />
-              </ActionButton>
-              <ActionButton
-                label={state.hints > 0 ? `Hint (${state.hints})` : "Hint"}
-                onClick={hint}
-                disabled={!canHint}
-                title="Place one piece where it belongs and lock it"
-              >
-                <HintIcon />
-              </ActionButton>
-              <ActionButton label="Clear" onClick={reset} disabled={!canReset}>
-                <ResetIcon />
-              </ActionButton>
-            </div>
-          </>
+      <div className="game-extra flex flex-col gap-3 px-3 pb-4 lg:px-0 lg:pb-0">
+        {howTo && (
+          <div className="hidden lg:block">
+            <HowTo />
+          </div>
         )}
-        <details className="group rounded-xl border border-border bg-surface/60 text-sm">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 text-muted hover:text-fg">
-            Board in words
-            <span aria-hidden="true" className="text-xs group-open:rotate-180">
-              ▾
-            </span>
-          </summary>
-          <ul className="space-y-1 px-3 pb-3 text-muted">
-            {summary.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </details>
+        {details}
       </div>
 
       <div

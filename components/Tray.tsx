@@ -39,8 +39,8 @@ export function Tray({
 }: Props) {
   const waiting = placements.filter((placement) => placement === null).length;
   return (
-    <div className="rounded-xl border border-border bg-surface p-3">
-      <div className="mb-2 flex items-baseline justify-between gap-2">
+    <div className="rounded-xl border border-border bg-surface p-2.5 lg:p-3">
+      <div className="mb-1.5 flex items-baseline justify-between gap-2 lg:mb-2">
         <h2 className="text-xs font-medium uppercase tracking-wider text-muted">Your pieces</h2>
         <p className="text-xs text-muted">
           {held !== null
