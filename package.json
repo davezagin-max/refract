@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "screenshots": "node scripts/screenshot.mjs",
-    "hints": "node scripts/hints.mjs"
+    "hints": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/hints.mjs"
   },
   "dependencies": {
     "next": "16.4.0",

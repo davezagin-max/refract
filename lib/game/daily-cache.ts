@@ -1,6 +1,7 @@
 /** Loading a day's puzzle: from the cache when it is trustworthy, else from the worker. */
 import { dayNumber } from "@/lib/engine/daily";
-import { GENERATOR_VERSION, tierForDate, type DailyPuzzle } from "@/lib/engine/generator";
+import type { DailyPuzzle } from "@/lib/engine/generator";
+import { GENERATOR_VERSION, tierForDate } from "@/lib/engine/schedule";
 import { ORIENTATIONS } from "@/lib/engine/optics";
 import { baseContent, targetsLit, validatePuzzle, type Placed } from "@/lib/engine/puzzle";
 import { trace } from "@/lib/engine/trace";

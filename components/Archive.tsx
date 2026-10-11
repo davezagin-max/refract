@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { EPOCH, addDays, dayNumber, daysBetween, isPlayable, weekday } from "@/lib/engine/daily";
-import { tierForDate, type TierName } from "@/lib/engine/generator";
+import { tierForDate, type TierName } from "@/lib/engine/schedule";
 import { formatTime } from "@/lib/game/share";
 import { streaks, type History } from "@/lib/game/stats";
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from "./icons";

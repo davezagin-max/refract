@@ -18,7 +18,7 @@
  * Everything is driven by one seeded generator and by node budgets, never by
  * the clock, so a date produces the same puzzle on every device.
  */
-import { dayNumber, isValidDate, weekday } from "./daily";
+import { dayNumber, isValidDate } from "./daily";
 import { makeGrid } from "./hex";
 import {
   EMPTY,
@@ -31,11 +31,11 @@ import {
 } from "./optics";
 import { baseContent, placedKey, type Placed, type Puzzle, type Target } from "./puzzle";
 import { makeRng, type Rng } from "./rng";
+import { dailySeed, tierForDate, type TierName } from "./schedule";
 import { solve } from "./solver";
 import { traceContent } from "./trace";
 
-/** Bump when a change would alter the puzzle generated for a given date. */
-export const GENERATOR_VERSION = 1;
+export { GENERATOR_VERSION, dailySeed, tierForDate, type TierName } from "./schedule";
 
 export const BOARD_RADIUS = 3;
 
@@ -325,8 +325,6 @@ const M: PieceKind = "mirror";
 const S: PieceKind = "splitter";
 const P: PieceKind = "prism";
 
-export type TierName = "easy" | "medium" | "hard" | "expert";
-
 /**
  * The four tiers. Bands are in solver nodes and were set from the measured
  * distribution of each tray size (see the difficulty notes in the README).
@@ -362,13 +360,6 @@ export const TIERS: Readonly<Record<TierName, TierSpec>> = {
   },
 };
 
-/** Like a crossword: gentle on Monday, hardest on Sunday (UTC). */
-const WEEK: readonly TierName[] = ["expert", "easy", "easy", "medium", "medium", "hard", "hard"];
-
-export function tierForDate(date: string): TierName {
-  return WEEK[weekday(date)];
-}
-
 export interface DailyPuzzle {
   date: string;
   /** 1 on the first day of the series. */
@@ -381,10 +372,6 @@ export interface DailyPuzzle {
   nodes: number;
   /** Sub-seeds tried before this puzzle was accepted. */
   attempts: number;
-}
-
-export function dailySeed(date: string): string {
-  return `refract/v${GENERATOR_VERSION}/${date}`;
 }
 
 /** The puzzle for a calendar date (YYYY-MM-DD, UTC). Pure and deterministic. */

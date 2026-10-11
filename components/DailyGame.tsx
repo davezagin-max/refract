@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { EPOCH, addDays, daysBetween, isPlayable, shortDate, utcToday } from "@/lib/engine/daily";
-import { GENERATOR_VERSION, type DailyPuzzle } from "@/lib/engine/generator";
+import type { DailyPuzzle } from "@/lib/engine/generator";
+import { GENERATOR_VERSION } from "@/lib/engine/schedule";
 import { loadDaily } from "@/lib/game/daily-cache";
 import { shareText } from "@/lib/game/share";
 import { cleanHistory, recordResult, streaks, type History } from "@/lib/game/stats";
