@@ -144,6 +144,32 @@ dialog::backdrop {
   grid-area: extra;
 }
 
+/*
+ * A phone held sideways: too short to stack, so the board goes beside the
+ * controls and stays in view while they scroll.
+ */
+@media (orientation: landscape) and (max-height: 540px) and (min-width: 600px) and (max-width: 1023px) {
+  .game-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "board meta" "board panel" "board extra";
+    min-height: calc(100dvh - var(--header-h));
+  }
+
+  .game-grid {
+    display: contents;
+  }
+
+  .game-board {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: calc(100dvh - var(--header-h));
+    min-height: 280px;
+  }
+}
+
 @media (min-width: 1024px) {
   .game-shell {
     display: grid;
