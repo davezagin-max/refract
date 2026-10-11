@@ -2,36 +2,30 @@
   "port": 3260,
   "shots": [
     {
-      "name": "hero",
+      "name": "playing",
       "path": "/?day=2026-10-11",
-      "theme": "dark",
       "viewport": "desktop",
       "actions": [
         { "waitFor": "canvas" },
-        { "click": "button:has-text('Hint')" },
-        { "click": "button:has-text('Hint')" },
-        { "click": "button:has-text('Hint')" },
-        { "click": "button:has-text('Hint')" },
+        { "wait": 300 },
+        { "solve": 4, "pace": 450 },
         { "wait": 400 }
       ]
     },
     {
       "name": "first-screen",
       "path": "/?day=2026-10-11",
-      "theme": "dark",
       "viewport": "desktop",
       "actions": [{ "waitFor": "canvas" }, { "wait": 400 }]
     },
     {
-      "name": "solved",
-      "path": "/?day=2026-10-07",
-      "theme": "dark",
+      "name": "hero",
+      "path": "/?day=2026-10-11",
       "viewport": "desktop",
       "actions": [
         { "waitFor": "canvas" },
-        { "click": "button:has-text('Hint')" },
-        { "click": "button:has-text('Hint')" },
-        { "click": "button:has-text('Hint')" },
+        { "wait": 300 },
+        { "solve": 5, "pace": 450 },
         { "waitFor": "section[aria-label='Result']" },
         { "wait": 300 }
       ]
@@ -39,27 +33,23 @@
     {
       "name": "mobile",
       "path": "/?day=2026-10-10",
-      "theme": "dark",
       "viewport": "mobile",
       "actions": [
         { "waitFor": "canvas" },
-        { "click": "button:has-text('Hint')" },
-        { "click": "button:has-text('Hint')" },
-        { "click": "button:has-text('Hint')" },
+        { "wait": 300 },
+        { "solve": 3, "pace": 450 },
         { "wait": 400 }
       ]
     },
     {
       "name": "mobile-first-screen",
       "path": "/?day=2026-10-10",
-      "theme": "dark",
       "viewport": "mobile",
       "actions": [{ "waitFor": "canvas" }, { "wait": 400 }]
     },
     {
       "name": "editor",
       "path": "/editor",
-      "theme": "dark",
       "viewport": "desktop",
       "actions": [
         { "waitFor": "canvas" },
@@ -71,17 +61,12 @@
   ],
   "gif": {
     "path": "/?day=2026-10-07",
-    "theme": "dark",
     "actions": [
       { "waitFor": "canvas" },
-      { "wait": 1200 },
-      { "click": "button:has-text('Hint')" },
-      { "wait": 1100 },
-      { "click": "button:has-text('Hint')" },
-      { "wait": 1100 },
-      { "click": "button:has-text('Hint')" },
+      { "wait": 900 },
+      { "solve": 3, "pace": 650 },
       { "waitFor": "section[aria-label='Result']" },
-      { "wait": 1800 }
+      { "wait": 1500 }
     ]
   }
 }
