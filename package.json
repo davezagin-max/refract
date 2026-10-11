@@ -11,7 +11,8 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "screenshots": "node scripts/screenshot.mjs"
+    "screenshots": "node scripts/screenshot.mjs",
+    "hints": "node scripts/hints.mjs"
   },
   "dependencies": {
     "next": "16.4.0",

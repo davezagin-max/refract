@@ -3,12 +3,14 @@ import { addDays, dayNumber, weekday } from "@/lib/engine/daily";
 import { difficultyOf } from "@/lib/engine/difficulty";
 import {
   BOARD_RADIUS,
+  GENERATOR_VERSION,
   TIERS,
   dailySeed,
   generate,
   generateDaily,
   tierForDate,
 } from "@/lib/engine/generator";
+import { HINTS, HINTS_VERSION, attemptHint, encodeHints } from "@/lib/engine/hints";
 import { placedKey, targetsLit, validatePuzzle } from "@/lib/engine/puzzle";
 import { hashString, makeRng } from "@/lib/engine/rng";
 import { solve } from "@/lib/engine/solver";
@@ -106,8 +108,30 @@ describe("daily generator", () => {
       expect(daily.nodes, date).toBeGreaterThanOrEqual(band[0]);
       expect(daily.nodes, date).toBeLessThanOrEqual(band[1]);
       expect(difficultyOf(daily.nodes).label.toLowerCase()).toBe(daily.tier);
+
+      // The precomputed shortcut names the same attempt and gives the same puzzle.
+      const hint = attemptHint(date, GENERATOR_VERSION);
+      expect(hint, date).toBe(daily.attempts - 1);
+      expect(generateDaily(date, hint), date).toEqual(daily);
     }
   }, 180_000);
+
+  it("keeps the shortcut table in step with the generator", () => {
+    expect(HINTS_VERSION).toBe(GENERATOR_VERSION);
+    expect(HINTS.length).toBeGreaterThanOrEqual(365);
+    expect(encodeHints([0, 9, 10, 35, 36, 61])).toBe("09azAZ");
+    // No hint for another generator version, a bad date, or a day past the table.
+    expect(attemptHint("2026-10-02", GENERATOR_VERSION + 1)).toBeUndefined();
+    expect(attemptHint("not-a-date", GENERATOR_VERSION)).toBeUndefined();
+    expect(attemptHint(addDays("2026-10-01", HINTS.length), GENERATOR_VERSION)).toBeUndefined();
+    expect(attemptHint("2026-09-30", GENERATOR_VERSION)).toBeUndefined();
+    // A sample deep in the table still matches the full search.
+    for (const offset of [150, 271, 388]) {
+      const date = addDays("2026-10-01", offset);
+      const daily = generateDaily(date);
+      expect(attemptHint(date, GENERATOR_VERSION), date).toBe(daily.attempts - 1);
+    }
+  }, 60_000);
 
   it("treats the attempt hint as a shortcut that cannot change the result", () => {
     const seed = dailySeed("2026-10-09");
