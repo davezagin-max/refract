@@ -53,6 +53,8 @@ interface Props {
   solution: readonly Placed[] | null;
   /** Day number, date and difficulty (or the editor's own title). */
   heading: ReactNode;
+  /** A line under the goal (where the puzzle came from), where there is room for it. */
+  note?: ReactNode;
   /** Replaces the tray once the puzzle is solved. */
   result: (result: GameResult) => ReactNode;
   onSolved?: (result: GameResult) => void;
@@ -125,6 +127,7 @@ export function Game({
   puzzle,
   solution,
   heading,
+  note,
   result,
   onSolved,
   showHowTo = false,
@@ -630,17 +633,32 @@ export function Game({
     </details>
   );
   const howTo = showHowTo && !state.solved;
+  // Until the first move, the tray glows gently so the place to start is obvious.
+  const beckon = state.moves === 0 && !state.solved && held === null && drag === null;
 
   return (
     <div className="game-shell mx-auto w-full max-w-[1140px]">
       <div className="game-grid">
-        <div className="game-meta flex items-end justify-between gap-3 px-3 pt-2 lg:flex-col lg:items-stretch lg:gap-4 lg:px-0 lg:pt-0">
+        <div className="game-meta grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 px-3 pt-2 lg:grid-cols-1 lg:items-stretch lg:gap-y-0 lg:px-0 lg:pt-0">
           <div className="min-w-0">{heading}</div>
-          <dl className="flex shrink-0 gap-4 text-right lg:gap-0 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:text-left">
-            <Stat label="Lit" value={`${lit}/${total}`} highlight={lit === total} />
+          <dl className="flex shrink-0 gap-4 text-right lg:order-last lg:mt-5 lg:gap-0 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:text-left">
+            <Stat label="Lit" long="Targets lit" value={`${lit}/${total}`} highlight={lit === total} />
             <Stat label="Moves" value={String(state.moves)} />
             <Stat label="Time" value={formatTime(shownTime)} />
           </dl>
+          {/* The goal in one sentence, on every screen size: nobody should need the help to start. */}
+          <p
+            data-goal
+            className="col-span-2 text-[13px] leading-snug text-fg/90 min-[380px]:text-sm lg:col-span-1 lg:mt-4 lg:text-lg lg:font-medium lg:leading-snug lg:text-fg"
+          >
+            Bend the laser with mirrors and prisms so every target lights up in its own colour.
+          </p>
+          {/* Wide screens, and phones tall enough that it costs the board nothing (it is width-bound there). */}
+          {note && (
+            <div className="col-span-2 hidden [@media(min-height:780px)]:block lg:col-span-1 lg:mt-2 lg:block">
+              {note}
+            </div>
+          )}
         </div>
 
         <section className="game-board relative" aria-label="Puzzle board">
@@ -663,13 +681,6 @@ export function Game({
             onFocus={(event) => setKeyboard(event.currentTarget.matches(":focus-visible"))}
             onBlur={() => setKeyboard(false)}
           />
-          {howTo && (
-            // On a phone the steps float over the foot of the board, so dismissing
-            // them on the first touch moves nothing under the player's finger.
-            <div className="howto-float pointer-events-none absolute inset-x-3 bottom-1 lg:hidden">
-              <HowTo />
-            </div>
-          )}
           <p id={descriptionId} className="sr-only">
             {lit} of {total} targets lit. {state.solved ? "Solved." : ""}
           </p>
@@ -678,7 +689,7 @@ export function Game({
           </p>
         </section>
 
-        <div className="game-panel flex flex-col gap-3 px-3 pb-3 lg:px-0 lg:pb-0">
+        <div className="game-panel flex flex-col gap-2 px-3 pb-2 lg:gap-3 lg:px-0 lg:pb-0">
           {celebrated && final ? (
             result(final)
           ) : (
@@ -690,6 +701,8 @@ export function Game({
                 held={held?.index ?? null}
                 dragging={drag?.index ?? null}
                 disabled={state.solved}
+                beckon={beckon}
+                intro={howTo ? <HowTo compact /> : undefined}
                 cellLabel={(cell) => cellName(grid, cell)}
                 onPointerDown={(event, index) => startPress(event, "tray", index, -1)}
                 onPointerMove={onPointerMove}
@@ -731,6 +744,7 @@ export function Game({
 
       <div className="game-extra flex flex-col gap-3 px-3 pb-4 lg:px-0 lg:pb-0">
         {howTo && (
+          // Below the controls, so nothing above it moves when it goes. Phones get the one-line version in the tray.
           <div className="hidden lg:block">
             <HowTo />
           </div>
@@ -757,10 +771,30 @@ export function Game({
   );
 }
 
-function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function Stat({
+  label,
+  long,
+  value,
+  highlight,
+}: {
+  label: string;
+  /** A fuller label where there is room for it. */
+  long?: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
-    <div className="lg:flex-1 lg:border-l lg:border-border lg:px-4 lg:py-3 lg:first:border-l-0">
-      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted">{label}</dt>
+    <div data-stat={label} className="lg:flex-1 lg:border-l lg:border-border lg:px-4 lg:py-3 lg:first:border-l-0">
+      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted">
+        {long ? (
+          <>
+            <span className="lg:hidden">{label}</span>
+            <span className="hidden lg:inline">{long}</span>
+          </>
+        ) : (
+          label
+        )}
+      </dt>
       <dd className={`font-mono text-base tabular-nums lg:text-xl ${highlight ? "text-success" : ""}`}>
         {value}
       </dd>
@@ -787,7 +821,7 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl border border-border bg-surface px-1 text-xs font-medium text-fg transition-colors hover:border-accent/60 hover:bg-raised disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:bg-surface sm:flex-row sm:gap-2 sm:text-sm"
+      className="flex min-h-11 flex-col items-center justify-center gap-0.5 lg:min-h-12 rounded-xl border border-border bg-surface px-1 text-xs font-medium text-fg transition-colors hover:border-accent/60 hover:bg-raised disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:bg-surface sm:flex-row sm:gap-2 sm:text-sm"
     >
       {children}
       <span className="whitespace-nowrap">{label}</span>

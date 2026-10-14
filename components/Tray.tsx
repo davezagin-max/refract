@@ -1,6 +1,6 @@
 "use client";
 
-import type { PointerEvent } from "react";
+import type { PointerEvent, ReactNode } from "react";
 import type { Placement, Puzzle } from "@/lib/engine/puzzle";
 import { LockIcon } from "./icons";
 import { PieceIcon } from "./PieceIcon";
@@ -14,6 +14,10 @@ interface Props {
   /** Tray index being dragged, or null. */
   dragging: number | null;
   disabled: boolean;
+  /** Before the first move: make the pieces the obvious place to start. */
+  beckon?: boolean;
+  /** Shown in the header on phones instead of the title (the one-line how-to). */
+  intro?: ReactNode;
   cellLabel: (cell: number) => string;
   onPointerDown: (event: PointerEvent<HTMLButtonElement>, index: number) => void;
   onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
@@ -30,6 +34,8 @@ export function Tray({
   held,
   dragging,
   disabled,
+  beckon = false,
+  intro,
   cellLabel,
   onPointerDown,
   onPointerMove,
@@ -38,16 +44,28 @@ export function Tray({
   onSelect,
 }: Props) {
   const waiting = placements.filter((placement) => placement === null).length;
+  const status =
+    held !== null
+      ? "Now tap a cell"
+      : beckon && waiting > 0
+        ? "Drag one onto the board"
+        : waiting > 0
+          ? `${waiting} to place`
+          : "All on the board";
   return (
     <div className="rounded-xl border border-border bg-surface p-2.5 lg:p-3">
-      <div className="mb-1.5 flex items-baseline justify-between gap-2 lg:mb-2">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-muted">Your pieces</h2>
-        <p className="text-xs text-muted">
-          {held !== null
-            ? "Now tap a cell"
-            : waiting > 0
-              ? `${waiting} to place`
-              : "All on the board"}
+      {/* One line, whatever it shows, so swapping the how-to for the title moves nothing below. */}
+      <div className="mb-1.5 flex h-4 items-center justify-between gap-2 lg:mb-2">
+        {intro && <div className="@container min-w-0 flex-1 lg:hidden">{intro}</div>}
+        <h2
+          className={`text-xs font-medium uppercase tracking-wider text-muted ${intro ? "hidden lg:block" : ""}`}
+        >
+          Your pieces
+        </h2>
+        <p
+          className={`text-xs ${beckon && held === null && waiting > 0 ? "font-medium text-accent" : "text-muted"} ${intro ? "hidden lg:block" : ""}`}
+        >
+          {status}
         </p>
       </div>
       <ul className="flex flex-wrap gap-2">
@@ -82,7 +100,7 @@ export function Tray({
                       ? "border-gold/70 bg-surface"
                       : placement
                         ? "border-dashed border-border bg-transparent"
-                        : "border-border bg-raised hover:border-accent/70"
+                        : `border-border bg-raised hover:border-accent/70 ${beckon ? "beckon" : ""}`
                 } ${dragging === index ? "opacity-30" : ""} disabled:cursor-default`}
               >
                 <PieceIcon

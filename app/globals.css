@@ -87,7 +87,31 @@ dialog::backdrop {
   }
 }
 
+/* Before the first move: the tray pieces breathe, so the place to start is obvious. */
+@keyframes beckon {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(94, 230, 255, 0);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px rgba(94, 230, 255, 0.22),
+      0 0 18px 2px rgba(94, 230, 255, 0.22);
+  }
+}
+
+.beckon {
+  border-color: rgba(94, 230, 255, 0.55);
+  animation: beckon 2.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* No pulse: a steady ring says the same thing. */
+  .beckon {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(94, 230, 255, 0.18);
+  }
+
   *,
   ::before,
   ::after {
@@ -151,7 +175,7 @@ dialog::backdrop {
 @media (orientation: landscape) and (max-height: 540px) and (min-width: 600px) and (max-width: 1023px) {
   .game-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) 320px;
     grid-template-rows: auto auto 1fr;
     grid-template-areas: "board meta" "board panel" "board extra";
     min-height: calc(100dvh - var(--header-h));
@@ -173,7 +197,7 @@ dialog::backdrop {
 @media (min-width: 1024px) {
   .game-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-columns: minmax(0, 1fr) 360px;
     grid-template-rows: auto auto 1fr;
     grid-template-areas: "board meta" "board panel" "board extra";
     column-gap: 2rem;
@@ -197,12 +221,5 @@ dialog::backdrop {
     top: 1.25rem;
     align-self: start;
     height: clamp(520px, calc(100dvh - var(--header-h) - var(--footer-h) - 2.5rem), 860px);
-  }
-}
-
-/* On a short phone the floating how-to drops its icons, so it covers less of the board. */
-@media (max-height: 720px) and (max-width: 1023px) {
-  .howto-float svg {
-    display: none;
   }
 }

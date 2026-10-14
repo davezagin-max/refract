@@ -6,15 +6,22 @@ import { setSoundEnabled, soundStore } from "@/lib/game/sound";
 import { Logo, SoundOffIcon, SoundOnIcon } from "./icons";
 
 const iconButton =
-  "grid h-11 w-11 place-items-center rounded-lg text-muted transition-colors hover:bg-raised hover:text-fg";
+  "flex h-11 min-w-11 items-center justify-center gap-2 rounded-lg text-sm text-muted transition-colors hover:bg-raised hover:text-fg";
+
+/** A visible label next to the icon on wide screens; icon only on a phone. */
+function Label({ text }: { text?: string }) {
+  return text ? <span className="hidden pr-1 lg:inline">{text}</span> : null;
+}
 
 export function IconButton({
   label,
+  text,
   onClick,
   pressed,
   children,
 }: {
   label: string;
+  text?: string;
   onClick?: () => void;
   pressed?: boolean;
   children: ReactNode;
@@ -26,17 +33,29 @@ export function IconButton({
       aria-label={label}
       aria-pressed={pressed}
       title={label}
-      className={iconButton}
+      className={`${iconButton} ${text ? "lg:px-2.5" : ""}`}
     >
       {children}
+      <Label text={text} />
     </button>
   );
 }
 
-export function IconLink({ label, href, children }: { label: string; href: string; children: ReactNode }) {
+export function IconLink({
+  label,
+  text,
+  href,
+  children,
+}: {
+  label: string;
+  text?: string;
+  href: string;
+  children: ReactNode;
+}) {
   return (
-    <Link href={href} aria-label={label} title={label} className={iconButton}>
+    <Link href={href} aria-label={label} title={label} className={`${iconButton} ${text ? "lg:px-2.5" : ""}`}>
       {children}
+      <Label text={text} />
     </Link>
   );
 }
@@ -57,11 +76,14 @@ function SoundToggle() {
 export function Header({ children }: { children?: ReactNode }) {
   return (
     <header className="flex h-[var(--header-h)] shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3 lg:px-6">
-      <Link href="/" className="flex min-h-11 items-center gap-2 rounded-md text-lg font-semibold tracking-tight">
+      <Link href="/" className="flex min-h-11 min-w-0 items-center gap-2 rounded-md text-lg font-semibold tracking-tight">
         <Logo />
         Refract
+        <span className="hidden truncate border-l border-border pl-3 text-sm font-normal tracking-normal text-muted sm:inline">
+          a daily laser puzzle
+        </span>
       </Link>
-      <nav aria-label="Game menu" className="flex items-center">
+      <nav aria-label="Game menu" className="flex shrink-0 items-center lg:gap-1">
         {children}
         <SoundToggle />
       </nav>

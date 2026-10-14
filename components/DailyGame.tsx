@@ -61,13 +61,13 @@ function Frame({
   return (
     <>
       <Header>
-        <IconButton label="Past puzzles and streak" onClick={onArchive}>
+        <IconButton label="Past puzzles and streak" text="Past puzzles" onClick={onArchive}>
           <CalendarIcon />
         </IconButton>
-        <IconButton label="How to play" onClick={onHelp}>
+        <IconButton label="How to play" text="How to play" onClick={onHelp}>
           <HelpIcon />
         </IconButton>
-        <IconLink label="Level editor" href="/editor">
+        <IconLink label="Level editor" text="Level editor" href="/editor">
           <EditIcon />
         </IconLink>
       </Header>
@@ -179,6 +179,13 @@ function Session({ today }: { today: string }) {
           showHowTo={howTo}
           onInteract={dismissHowTo}
           onSolved={onSolved}
+          note={
+            <p className="text-xs leading-snug text-muted lg:text-sm lg:leading-relaxed">
+              A new puzzle every day, the same for everyone. A solver checked{" "}
+              <span className="font-mono text-fg">{ready.daily.nodes.toLocaleString("en-US")}</span>{" "}
+              positions to prove this one has exactly one solution.
+            </p>
+          }
           heading={
             <Heading
               daily={ready.daily}
@@ -276,11 +283,6 @@ function Heading({
       </h1>
       <p className="text-xs text-muted lg:mt-1 lg:text-sm">
         {shortDate(daily.date)} · <Difficulty nodes={daily.nodes} />
-      </p>
-      <p className="mt-2 hidden text-sm leading-relaxed text-muted lg:block">
-        Generated from the date and checked by a solver, which examined{" "}
-        <span className="font-mono text-fg">{daily.nodes.toLocaleString("en-US")}</span> positions to
-        prove this board has exactly one solution.
       </p>
       {newDay && (
         <button

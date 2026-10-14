@@ -58,7 +58,7 @@ function Frame({ children }: { children: ReactNode }) {
   return (
     <>
       <Header>
-        <IconLink label="Daily puzzle" href="/">
+        <IconLink label="Daily puzzle" text="Daily puzzle" href="/">
           <CalendarIcon />
         </IconLink>
       </Header>
