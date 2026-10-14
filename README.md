@@ -1,47 +1,64 @@
 # Refract
 
-> A daily light-bending puzzle on a hex grid. Every level is generated from the date and proven by a solver to have exactly one solution.
+**A daily light-bending puzzle: the same board for everyone each day, and a solver proves every one has exactly one solution before you play it.**
 
 [![CI](https://github.com/davezagin-max/refract/actions/workflows/ci.yml/badge.svg)](https://github.com/davezagin-max/refract/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Live demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://refract.vercel.app)
+[![Live demo: coming soon](https://img.shields.io/badge/live%20demo-coming%20soon-lightgrey.svg)](#run-locally)
 
-![Refract: a solved expert puzzle, with white light split into red, green and blue beams](docs/hero.png)
+![A medium puzzle solved from the first screen: pieces dragged from the tray, turned into place, and every target lights up](docs/demo.gif)
 
-![A medium puzzle played from the first drag to the win](docs/demo.gif)
+*One full game, from the first screen to the win: drag a piece (mirror, splitter or prism) from the tray onto the board, tap it to turn it, and steer the laser until every target glows in its own colour.*
 
-## Try it in 10 seconds
+## What it does
 
-**[Open the live demo](https://refract.vercel.app)**: no key, no sign-up, no install. Drag a mirror from the tray into the beam and tap it to turn it. Light every target in exactly its colour. Stuck? **Hint** places one piece where it belongs.
+- **A new puzzle every day, identical for everyone.** The board is built from the date, right in your browser: no server and no account.
+- **Every puzzle is proven fair.** Before you see it, a solver tries the ways the pieces could go and confirms there is exactly one answer. How hard it had to work becomes the difficulty rating (Easy to Expert).
+- **Real light, real game feel.** Mirrors bounce the beam, splitters copy it, prisms break white light into red, green and blue, and colours mix where beams meet. The glowing beams are animated on a canvas designed to hold 60 frames per second, phones included.
+- **A level editor too.** Build your own puzzle, and the same solver tells you whether it can be solved, whether the answer is unique, and how hard it is.
 
-Everything runs in your browser. There is no server, no model and no recorded data: today's board is generated on your device from today's UTC date, so everyone gets the same puzzle.
+## Try it
+
+The live demo is coming soon. Until then it runs locally in about a minute, with no key and no sign-up (needs Node 20.9+ and pnpm):
+
+```bash
+pnpm install
+pnpm dev     # then open http://localhost:3160
+```
+
+The GIF above is a full game. Drag a piece from the tray into the beam and tap it to turn it; light every target in exactly its colour (the letter in each target names the colour). Stuck? **Hint** places one piece where it belongs.
+
+Everything runs in your browser. There is no server, no AI model and no recorded data: today's board is generated on your device from today's UTC date, so everyone gets the same puzzle.
+
+![A solved expert puzzle on a desktop: white light split by two prisms into red, green and blue beams, all six targets lit, and the result panel](docs/hero.png)
+
+*A solved Sunday (expert) puzzle. Two prisms split the white laser into red, green and blue; the side column states the goal, the solver's proof, and the result you can share.*
 
 <p align="center">
   <img src="docs/playing.png" alt="Mid-game on a desktop: four of five pieces placed, three of six targets lit" width="49%">
   <img src="docs/editor.png" alt="The level editor after the solver has verified a level" width="49%">
 </p>
 <p align="center">
-  <img src="docs/mobile-first-screen.png" alt="The first screen on a phone, with the three-step how-to" width="240">
+  <img src="docs/mobile-first-screen.png" alt="The first screen on a phone: the goal in one line, the board, and the tray with a one-line how-to" width="240">
   &nbsp;&nbsp;
   <img src="docs/mobile.png" alt="A hard puzzle in progress on a phone" width="240">
 </p>
 
-Above: mid-game with the tray, live stats, undo and hint; the level editor, where the solver proves a level and rates it; and the same game at 390px wide, on first load and in play.
+*Above: mid-game on a desktop; the level editor, where the solver proves a level and rates it; and the game at 390px wide, on first load and in play.*
 
-When you finish, **Copy result** puts a spoiler-free summary on the clipboard. This is the one for the game in the first screenshot: one square per move, coloured by how many targets were lit after it, and nothing about where the pieces go.
+When you finish, **Copy result** puts a spoiler-free summary on the clipboard. This is the one for the game in the solved screenshot: one square per move, coloured by how many targets were lit after it, and nothing about where the pieces go. The copied text ends with a link to the puzzle.
 
 ```text
 Refract #11 · Expert ★★★★☆
 10 moves · 0:07 · no hints
 ⬛⬛⬛⬛⬛⬛🟧🟨
 🟨🟩
-https://refract.vercel.app
 ```
 
 ## Why it's interesting
 
 - **The optics are exact integer math, not floating-point geometry.** Beams travel in six directions and a mirror sits at one of six angles, so reflecting across a mirror reduces to `d' = (m − d) mod 6`. A test checks that rule against real Euclidean reflection for all 36 mirror and beam combinations. Light is a 3-bit mask of red, green and blue, so mixing is a bitwise OR and a target needs an exact match (extra light makes it wrong, which is half the puzzle). The ray caster ends on mirror loops because each (cell, direction, colour channel) can be entered only once.
-- **A solver proves each puzzle has one solution, and its effort is the difficulty rating.** It is a depth-first search that always branches on the unmet need (a target missing a colour, or receiving one it must not) with the fewest cells that could fix it, with four pruning rules and a scheme that visits every set of placements exactly once without a visited-state table. On the expert board for Sunday 11 October 2026 it examines 23,165 positions where the unpruned search examines 4,610,347. The generator works backwards from a solved board, then asks the solver for unintended solutions and adds the target or wall that kills the most of them, until one solution is left. The "positions examined" number you see beside each puzzle is that proof's size.
+- **A solver proves each puzzle has one solution, and its effort is the difficulty rating.** It is a depth-first search that always branches on the unmet need (a target missing a colour, or receiving one it must not) with the fewest cells that could fix it, with four pruning rules and a scheme that visits every set of placements exactly once without a visited-state table. On the expert board for Sunday 11 October 2026 it examines 23,165 positions where the unpruned search examines 4,610,347. The generator works backwards from a solved board, then asks the solver for unintended solutions and adds the target or wall that kills the most of them, until one solution is left. The "positions checked" number shown under each puzzle's goal is that proof's size.
 - **Game feel on a canvas built to hold 60fps.** Beams are layered additive strokes (never `shadowBlur`), batched into one path per colour, so a frame costs about five strokes per colour however many segments are on screen. When you move a piece only the changed part of the light animates, growing outward from the point of change in the order light would travel. The renderer times its own frames and lowers the canvas pixel density if a device cannot keep up.
 
 ### What the pruning buys
@@ -135,7 +152,7 @@ pnpm e2e     # after a build: plays the real app in headless Chromium
 - **Generator determinism**: the same date always gives the same puzzle; 70 consecutive days are valid, uniquely solvable, in their difficulty band, and match the precomputed table.
 - **Game rules**: the reducer (moves, undo and redo, hints, win), share text, streaks, save and restore, the keyboard cursor, the text description, the editor model, the worker client (including stopping a solve), and the frame-rate fallback.
 
-`pnpm e2e` is a Playwright script with 107 checks against the production build: it plays puzzles to a win by mouse, by touch and by keyboard alone, at 1280, 390 and 360 pixels wide; reloads mid-game; opens every dialog; uses the editor; runs with storage blocked and with no Web Worker; and fails on any console error or sideways page scroll.
+`pnpm e2e` is a Playwright script with 120 checks against the production build: it plays puzzles to a win by mouse, by touch and by keyboard alone, at 1280, 390 and 360 pixels wide; checks the first screen (the goal is visible, the how-to never covers the board, the tray is marked as the place to start); reloads mid-game; opens every dialog; uses the editor; runs with storage blocked and with no Web Worker; and fails on any console error or sideways page scroll.
 
 CI runs lint, typecheck, unit tests and the build, plus a gitleaks secret scan, on every push. The browser script is run locally, not in CI.
 
@@ -150,7 +167,7 @@ Accessibility: full keyboard play (a cursor on the board, pick up, turn, place, 
 - **A drag that starts on the board does not scroll the page** on a phone, because the board captures touch for moving pieces. Everything needed to play is on the first screen; the text description sits below it.
 - **The precomputed table covers five years** (to 4 October 2031). After that, or if the generator changes and the table is not rebuilt with `pnpm hints`, the slowest days take about a second to generate on a laptop and longer on a phone. It happens in the worker behind a loading state, once per day per device.
 - **One theme.** Deep navy only; there is no light mode.
-- Smaller things: the per-day puzzle cache in `localStorage` is never pruned, `docs/demo.gif` is 3 MB, and `components/Game.tsx` (pointer, keyboard and layout in one component) is the file I would split next.
+- Smaller things: the per-day puzzle cache in `localStorage` is never pruned, `docs/demo.gif` is about 2.7 MB, and `components/Game.tsx` (pointer, keyboard and layout in one component) is the file I would split next.
 
 Next steps: calibrate difficulty against real play, run the browser checks in CI, an installable offline build, and new pieces (colour filters, one-way gates), each of which is one entry in the optics table plus tests.
 
