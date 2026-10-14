@@ -122,7 +122,7 @@ async function centres(page, radius) {
   }, radius);
 }
 
-const stat = (page, label) => page.locator(`dt:text-is("${label}") + dd`).first().innerText();
+const stat = (page, label) => page.locator(`[data-stat="${label}"] dd`).first().innerText();
 const tray = (page, index) => page.locator(`button[aria-label^="Piece ${index + 1}:"]`);
 const overflow = (page) =>
   page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -144,6 +144,26 @@ async function canvasIsLit(page) {
   });
 }
 
+/**
+ * What a first-time visitor needs without opening the help: the goal in one
+ * line, the how-to clear of the board, and the tray marked as the place to start.
+ */
+async function firstScreen(page, viewport, trayPieces, tag) {
+  const goal = page.locator("[data-goal]");
+  const goalBox = await goal.boundingBox();
+  ok(goalBox && goalBox.y >= 0 && goalBox.y + goalBox.height <= viewport.height, `the goal is on the first screen at ${tag}`);
+  ok((await goal.innerText()).includes("every target lights up in its own colour"), `the goal names the aim at ${tag}`);
+  const overlap = await page.evaluate(() => {
+    const board = document.querySelector("canvas").getBoundingClientRect();
+    const howTo = [...document.querySelectorAll("ol[aria-label='How to play']")].find((el) => el.getClientRects().length > 0);
+    if (!howTo) return null;
+    const r = howTo.getBoundingClientRect();
+    return r.left < board.right && r.right > board.left && r.top < board.bottom && r.bottom > board.top;
+  });
+  ok(overlap === false, `the how-to is shown and does not cover the board at ${tag}`);
+  ok((await page.locator("button.beckon").count()) === trayPieces, `every tray piece is marked as the place to start at ${tag}`);
+}
+
 async function expectSolved(page, total) {
   await page.waitForSelector("section[aria-label='Result']", { timeout: 8000 });
   ok((await stat(page, "Lit")) === `${total}/${total}`, "every target is lit");
@@ -163,6 +183,7 @@ try {
 
     const { puzzle, solution } = await cached(page, TODAY);
     const total = puzzle.targets.length;
+    await firstScreen(page, { width: 1280, height: 800 }, puzzle.tray.length, "1280px");
     let geo = await centres(page, puzzle.radius);
 
     // Opening the text description makes the side column taller; the board must not grow with it.
@@ -186,6 +207,7 @@ try {
     await page.mouse.up();
     ok((await stat(page, "Moves")) === "1", "a drag from the tray is one move");
     ok((await page.locator("ol[aria-label='How to play']:visible").count()) === 0, "how-to strip went away");
+    ok((await page.locator("button.beckon").count()) === 0, "the tray stops glowing after the first move");
     ok((await tray(page, 0).getAttribute("aria-label")).includes(`on the board at ${to.name}`), "tray shows where the piece is");
 
     // Turn it into place: a burst of turns is one move.
@@ -388,6 +410,7 @@ try {
         .map(({ r, label }) => `${label} ${Math.round(r.width)}x${Math.round(r.height)}`),
     );
     ok(small.length === 0, `every touch target is at least 44px at ${tag} (${small.join(", ")})`);
+    await firstScreen(page, size, puzzle.tray.length, tag);
     await page.waitForTimeout(700);
     await shot(page, `phone-${size.width}-first`);
 
