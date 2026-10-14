@@ -16,6 +16,11 @@
  * and solve: { "solve": 3, "pace": 600 } plays the first three pieces of the puzzle on screen
  * with the mouse (drag from the tray, then click to turn), pausing `pace` ms between steps.
  * The moves, clock and share grid in the pictures are therefore real play, not seeded state.
+ * In the GIF, { "mark": "start" } cuts everything recorded before it (the loading frame).
+ *
+ * "clock": "2026-10-11T14:30:00Z" on a shot (or the GIF) fixes the browser's date, so a
+ * puzzle is shown on its own day ("Today #11") whenever the pictures are retaken. Only the
+ * calendar is fixed; the game clock and animations run in real time.
  * Output goes to docs/<name>.png and docs/demo.gif. The GIF needs ffmpeg on PATH.
  */
 import { execFileSync, spawn } from "node:child_process";
@@ -95,9 +100,10 @@ async function solve(page, count, pace = 0) {
   await page.mouse.move(4, 4);
 }
 
-async function perform(page, actions = []) {
+async function perform(page, actions = [], marks = {}) {
   for (const action of actions) {
-    if (action.solve) await solve(page, action.solve, action.pace);
+    if (action.mark) marks[action.mark] = Date.now();
+    else if (action.solve) await solve(page, action.solve, action.pace);
     else if (action.click) await page.click(action.click);
     else if (action.fill) await page.fill(action.fill[0], action.fill[1]);
     else if (action.press) await page.keyboard.press(action.press);
@@ -119,6 +125,7 @@ async function open(browser, spec, extra = {}) {
     reducedMotion: spec.motion ? "no-preference" : "reduce",
     ...extra,
   });
+  if (spec.clock) await context.clock.setFixedTime(new Date(spec.clock));
   const page = await context.newPage();
   await page.goto(base + (spec.path ?? "/"), { waitUntil: "networkidle" });
   return { context, page, viewport };
@@ -138,12 +145,16 @@ try {
   if (config.gif) {
     const videoDir = path.join(out, ".video");
     const size = VIEWPORTS[config.gif.viewport ?? "desktop"];
+    const recording = Date.now();
+    const marks = {};
     const { context, page } = await open(
       browser,
       { ...config.gif, motion: true },
       { deviceScaleFactor: 1, recordVideo: { dir: videoDir, size } },
     );
-    await perform(page, config.gif.actions);
+    await perform(page, config.gif.actions, marks);
+    const skip = marks.start ? Math.max(0, (marks.start - recording) / 1000) : 0;
+    const fps = config.gif.fps ?? 12;
     await page.waitForTimeout(600);
     const video = await page.video().path();
     await context.close();
@@ -151,7 +162,7 @@ try {
     try {
       execFileSync(
         "ffmpeg",
-        ["-y", "-i", video, "-vf", "fps=12,scale=760:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle", gif],
+        ["-y", "-ss", skip.toFixed(2), "-i", video, "-vf", `fps=${fps},scale=760:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`, gif],
         { stdio: "ignore" },
       );
       console.log(`wrote ${gif}`);
